@@ -1,0 +1,31 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.14.36301.6 d17.14
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NetFrames.Server", "NetFrames\NetFrames.Server.csproj", "{2EA1297B-33CD-45BE-8F19-0EBD60FCCC9D}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NetFrames.WebPortal", "NetFrames.WebPortal\NetFrames.WebPortal.csproj", "{1ABAF9F0-8B33-42AC-A4B4-A6C6616ABDBB}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{2EA1297B-33CD-45BE-8F19-0EBD60FCCC9D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2EA1297B-33CD-45BE-8F19-0EBD60FCCC9D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2EA1297B-33CD-45BE-8F19-0EBD60FCCC9D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2EA1297B-33CD-45BE-8F19-0EBD60FCCC9D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1ABAF9F0-8B33-42AC-A4B4-A6C6616ABDBB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1ABAF9F0-8B33-42AC-A4B4-A6C6616ABDBB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1ABAF9F0-8B33-42AC-A4B4-A6C6616ABDBB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1ABAF9F0-8B33-42AC-A4B4-A6C6616ABDBB}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {661A5F0C-E1B8-42D9-A12B-1BC1FCC1CAAA}
+	EndGlobalSection
+EndGlobal

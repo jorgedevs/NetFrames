@@ -1,0 +1,26 @@
+@NetFrames_HostAddress = http://localhost:5233
+
+### Simple string test
+GET {{NetFrames_HostAddress}}/hello
+Accept: text/plain
+
+###
+
+### Upload an image
+POST {{NetFrames_HostAddress}}/images/upload
+Content-Type: multipart/form-data; boundary=WebKitFormBoundary7MA4YWxkTrZu0gW
+
+--WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="image"; filename="portrait.jpg"
+Content-Type: image/jpeg
+
+< ./portrait.jpg
+--WebKitFormBoundary7MA4YWxkTrZu0gW--
+
+###
+
+### Get an image by ID
+GET {{NetFrames_HostAddress}}/images/{id}
+Accept: image/jpeg
+
+###
