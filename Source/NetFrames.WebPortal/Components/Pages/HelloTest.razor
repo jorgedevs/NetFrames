@@ -1,0 +1,71 @@
+﻿@page "/hellotest"
+@rendermode InteractiveServer
+@inject HttpClient Http
+
+<h3>API Tests</h3>
+<button @onclick="CallHelloApi">Call /hello Endpoint</button>
+<p>@message</p>
+
+<h3>Upload an Image</h3>
+<InputFile OnChange="OnInputFileChange" />
+<button class="btn btn-primary" @onclick="UploadImage" disabled="@(!isFileSelected)">Upload</button>
+
+@if (!string.IsNullOrEmpty(status))
+{
+    <p>@status</p>
+}
+
+@code {
+    private string? message;
+
+    private async Task CallHelloApi()
+    {
+        message = await Http.GetStringAsync("http://localhost:5233/hello");
+    }
+
+    private IBrowserFile? selectedFile;
+    private bool isFileSelected => selectedFile != null;
+    private string? status;
+
+    private void OnInputFileChange(InputFileChangeEventArgs e)
+    {
+        selectedFile = e.File;
+        status = null;
+    }
+
+    private async Task UploadImage()
+    {
+        if (selectedFile is null)
+        {
+            status = "Please select a file first.";
+            return;
+        }
+
+        try
+        {
+            var content = new MultipartFormDataContent();
+            await using var stream = selectedFile.OpenReadStream(maxAllowedSize: 10 * 1024 * 1024); // 10 MB limit
+            content.Add(new StreamContent(stream), "image", selectedFile.Name);
+
+            var response = await Http.PostAsync("http://localhost:5233/images/upload", content);
+
+            if (response.IsSuccessStatusCode)
+            {
+                var result = await response.Content.ReadAsStringAsync();
+                status = $"Upload successful! Server response: {result}";
+            }
+            else
+            {
+                status = $"Upload failed: {response.ReasonPhrase}";
+            }
+        }
+        catch (Exception ex)
+        {
+            status = $"Error: {ex.Message}";
+        }
+        finally
+        {
+            selectedFile = null; // Prevent reusing the same stream
+        }
+    }
+}

@@ -3,7 +3,9 @@ using NetFrames.WebPortal.Components;
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
-builder.Services.AddRazorComponents()
+builder.Services
+    .AddHttpClient()
+    .AddRazorComponents()
     .AddInteractiveServerComponents();
 
 var app = builder.Build();
