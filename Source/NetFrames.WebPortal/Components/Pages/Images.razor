@@ -1,11 +1,38 @@
 ﻿@page "/"
+@rendermode InteractiveServer
 
 <PageTitle>Images</PageTitle>
 
-<h1>Hello, world!</h1>
+<h1>Image Gallery</h1>
 
-Welcome to your new app.
+<div class="image-grid">
+    @for (int i = 0; i < 12; i++)
+    {
+        <img src="images/placeholder.jpg" class="grid-image" @onclick="() => ShowModal(i)" alt="Gallery image" />
+    }
+</div>
+
+@if (showModal)
+{
+    <div class="modal-backdrop" @onclick="CloseModal">
+        <div class="modal-content" @onclick:stopPropagation>
+            <img src="images/placeholder.jpg" class="modal-image" alt="Large view" />
+        </div>
+    </div>
+}
 
 @code {
+    private bool showModal = false;
+    private int selectedIndex;
 
+    private void ShowModal(int index)
+    {
+        selectedIndex = index;
+        showModal = true;
+    }
+
+    private void CloseModal()
+    {
+        showModal = false;
+    }
 }

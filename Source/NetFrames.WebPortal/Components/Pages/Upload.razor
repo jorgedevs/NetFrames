@@ -2,10 +2,6 @@
 @rendermode InteractiveServer
 @inject HttpClient Http
 
-<h3>API Tests</h3>
-<button @onclick="CallHelloApi">Call /hello Endpoint</button>
-<p>@message</p>
-
 <h3>Upload an Image</h3>
 <InputFile OnChange="OnInputFileChange" />
 <button class="btn btn-primary" @onclick="UploadImage" disabled="@(!isFileSelected)">Upload</button>
