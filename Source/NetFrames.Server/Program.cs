@@ -4,6 +4,8 @@ builder.Services.AddOpenApi();
 
 var app = builder.Build();
 
+app.Urls.Add("http://0.0.0.0:5000");
+
 if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
