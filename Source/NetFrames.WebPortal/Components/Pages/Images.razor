@@ -37,7 +37,7 @@ else if (imageIds?.Any() == true)
     <div class="image-grid">
         @foreach (var id in imageIds)
         {
-            <img src="http://0.0.0.0:5000/images/@id"
+            <img src="http://192.168.50.226:5000/images/@id"
                  class="grid-image"
                  @onclick="() => ShowModal(id)"
                  alt="Gallery image" />
@@ -53,7 +53,7 @@ else
 {
     <div class="modal-backdrop" @onclick="CloseModal">
         <div class="modal-content" @onclick:stopPropagation>
-            <img src="http://0.0.0.0:5000/images/@selectedId" class="modal-image" alt="Large view" />
+            <img src="http://192.168.50.226:5000/images/@selectedId" class="modal-image" alt="Large view" />
         </div>
     </div>
 }
@@ -69,7 +69,7 @@ else
         isLoading = true;
         try
         {
-            imageIds = await Http.GetFromJsonAsync<List<string>>("http://0.0.0.0:5000/images/list");
+            imageIds = await Http.GetFromJsonAsync<List<string>>("http://192.168.50.226:5000/images/list");
         }
         finally
         {
