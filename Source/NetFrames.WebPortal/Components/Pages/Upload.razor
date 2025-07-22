@@ -16,7 +16,7 @@
 
     private async Task CallHelloApi()
     {
-        message = await Http.GetStringAsync("http://localhost:5233/hello");
+        message = await Http.GetStringAsync("http://0.0.0.0:5000/hello");
     }
 
     private IBrowserFile? selectedFile;
@@ -43,7 +43,7 @@
             await using var stream = selectedFile.OpenReadStream(maxAllowedSize: 10 * 1024 * 1024); // 10 MB limit
             content.Add(new StreamContent(stream), "image", selectedFile.Name);
 
-            var response = await Http.PostAsync("http://localhost:5233/images/upload", content);
+            var response = await Http.PostAsync("http://0.0.0.0:5000/images/upload", content);
 
             if (response.IsSuccessStatusCode)
             {
