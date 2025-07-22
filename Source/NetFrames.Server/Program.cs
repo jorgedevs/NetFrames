@@ -19,7 +19,6 @@ var imageStore = new Dictionary<string, byte[]>();
 var imagesPath = Path.Combine(app.Environment.ContentRootPath, "wwwroot", "images");
 Directory.CreateDirectory(imagesPath);
 
-
 // String simple endpoint
 app.MapGet("/hello", () =>
 {
