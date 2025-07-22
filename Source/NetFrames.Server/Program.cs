@@ -9,13 +9,43 @@ if (app.Environment.IsDevelopment())
     app.MapOpenApi();
 }
 
+app.UseStaticFiles();
+
 app.UseHttpsRedirection();
 
 // In-memory image store (replace with persistent storage for production)
 var imageStore = new Dictionary<string, byte[]>();
 
+var imagesPath = Path.Combine(app.Environment.ContentRootPath, "wwwroot", "images");
+Directory.CreateDirectory(imagesPath);
+
+
 // String simple endpoint
-app.MapGet("/hello", () => "Hello from NetFrames API!");
+app.MapGet("/hello", () =>
+{
+    return "Hello from NetFrames API!";
+});
+
+// Return all image IDs in the store
+app.MapGet("/images/list", () =>
+{
+    var files = Directory.GetFiles(imagesPath, "*.jpg")
+        .Select(f => Path.GetFileNameWithoutExtension(f))
+        .ToArray();
+
+    return Results.Ok(files);
+});
+
+// Get image endpoint (serve from disk)
+app.MapGet("/images/{id}", (string id) =>
+{
+    var filePath = Path.Combine(imagesPath, $"{id}.jpg");
+    if (!File.Exists(filePath))
+        return Results.NotFound();
+
+    return Results.File(filePath, "image/jpeg");
+});
+
 
 // Upload image endpoint
 app.MapPost("/images/upload", async (HttpRequest request) =>
@@ -38,15 +68,5 @@ app.MapPost("/images/upload", async (HttpRequest request) =>
     return Results.Ok(new { id });
 })
 .WithName("UploadImage");
-
-// Get image endpoint
-app.MapGet("/images/{id}", (string id) =>
-{
-    if (!imageStore.TryGetValue(id, out var imageBytes))
-        return Results.NotFound();
-
-    return Results.File(imageBytes, "image/jpeg");
-})
-.WithName("GetImage");
 
 app.Run();

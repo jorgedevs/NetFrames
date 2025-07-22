@@ -1,11 +1,12 @@
 ﻿@page "/"
 @rendermode InteractiveServer
+@inject HttpClient Http
 
 <PageTitle>Images</PageTitle>
 
 <h1>Image Gallery</h1>
 
-<div class="image-grid">
+@* <div class="image-grid">
     @for (int i = 0; i < 12; i++)
     {
         <img 
@@ -23,15 +24,62 @@
             <img src="images/placeholder.jpg" class="modal-image" alt="Large view" />
         </div>
     </div>
+} *@
+
+@if (isLoading)
+{
+    <div class="spinner-border text-primary" role="status">
+        <span class="visually-hidden">Loading...</span>
+    </div>
+}
+else if (imageIds?.Any() == true)
+{
+    <div class="image-grid">
+        @foreach (var id in imageIds)
+        {
+            <img src="http://localhost:5233/images/@id"
+                 class="grid-image"
+                 @onclick="() => ShowModal(id)"
+                 alt="Gallery image" />
+        }
+    </div>
+}
+else
+{
+    <p>No images found.</p>
+}
+
+@if (showModal)
+{
+    <div class="modal-backdrop" @onclick="CloseModal">
+        <div class="modal-content" @onclick:stopPropagation>
+            <img src="http://localhost:5233/images/@selectedId" class="modal-image" alt="Large view" />
+        </div>
+    </div>
 }
 
 @code {
+    private bool isLoading = true;
     private bool showModal = false;
-    private int selectedIndex;
+    private string? selectedId;
+    private List<string>? imageIds;
 
-    private void ShowModal(int index)
+    protected override async Task OnInitializedAsync()
     {
-        selectedIndex = index;
+        isLoading = true;
+        try
+        {
+            imageIds = await Http.GetFromJsonAsync<List<string>>("http://localhost:5233/images/list");
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private void ShowModal(string id)
+    {
+        selectedId = id;
         showModal = true;
     }
 
