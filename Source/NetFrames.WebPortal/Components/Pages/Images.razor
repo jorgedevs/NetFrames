@@ -1,30 +1,11 @@
 ﻿@page "/"
 @rendermode InteractiveServer
+@inject ApiConfig ApiConfig
 @inject HttpClient Http
 
 <PageTitle>Images</PageTitle>
 
 <h1>Image Gallery</h1>
-
-@* <div class="image-grid">
-    @for (int i = 0; i < 12; i++)
-    {
-        <img 
-            src="images/placeholder.jpg" 
-            class="grid-image" 
-            @onclick="() => ShowModal(i)" 
-            alt="Gallery image" />
-    }
-</div>
-
-@if (showModal)
-{
-    <div class="modal-backdrop" @onclick="CloseModal">
-        <div class="modal-content" @onclick:stopPropagation>
-            <img src="images/placeholder.jpg" class="modal-image" alt="Large view" />
-        </div>
-    </div>
-} *@
 
 @if (isLoading)
 {
@@ -37,7 +18,7 @@ else if (imageIds?.Any() == true)
     <div class="image-grid">
         @foreach (var id in imageIds)
         {
-            <img src="http://192.168.50.226:5000/images/@id"
+            <img src="@($"{ApiConfig.BaseUrl}/images/{id}")"
                  class="grid-image"
                  @onclick="() => ShowModal(id)"
                  alt="Gallery image" />
@@ -53,7 +34,10 @@ else
 {
     <div class="modal-backdrop" @onclick="CloseModal">
         <div class="modal-content" @onclick:stopPropagation>
-            <img src="http://192.168.50.226:5000/images/@selectedId" class="modal-image" alt="Large view" />
+            <img 
+                src="@($"{ApiConfig.BaseUrl}/images/{selectedId}")"
+                class="modal-image" 
+                alt="Large view" />
         </div>
     </div>
 }
@@ -69,7 +53,7 @@ else
         isLoading = true;
         try
         {
-            imageIds = await Http.GetFromJsonAsync<List<string>>("http://192.168.50.226:5000/images/list");
+            imageIds = await Http.GetFromJsonAsync<List<string>>($"{ApiConfig}/images/list");
         }
         finally
         {

@@ -1,6 +1,10 @@
+using NetFrames.WebPortal;
 using NetFrames.WebPortal.Components;
 
 var builder = WebApplication.CreateBuilder(args);
+
+var apiBaseUrl = builder.Configuration["ApiBaseUrl"];
+builder.Services.AddSingleton(new ApiConfig { BaseUrl = apiBaseUrl });
 
 // Add services to the container.
 builder.Services
