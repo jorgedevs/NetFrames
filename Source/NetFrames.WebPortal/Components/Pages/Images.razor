@@ -53,7 +53,7 @@ else
         isLoading = true;
         try
         {
-            imageIds = await Http.GetFromJsonAsync<List<string>>($"{ApiConfig}/images/list");
+            imageIds = await Http.GetFromJsonAsync<List<string>>($"{ApiConfig.BaseUrl}/images/list");
         }
         finally
         {
