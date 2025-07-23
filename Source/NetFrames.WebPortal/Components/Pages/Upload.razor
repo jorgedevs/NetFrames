@@ -1,4 +1,5 @@
 ﻿@page "/upload"
+@using System.Net.Http.Headers
 @rendermode InteractiveServer
 @inject ApiConfig ApiConfig
 @inject HttpClient Http
@@ -14,55 +15,58 @@
 
 @code {
     private string? message;
+    private bool isFileSelected => selectedFile != null && fileData != null;
+    private IBrowserFile? selectedFile;
+    private MemoryStream? fileData;
+    private string? status;
 
     private async Task CallHelloApi()
     {
         message = await Http.GetStringAsync($"{ApiConfig.BaseUrl}/hello");
     }
 
-    private IBrowserFile? selectedFile;
-    private bool isFileSelected => selectedFile != null;
-    private string? status;
-
-    private void OnInputFileChange(InputFileChangeEventArgs e)
+    private async void OnInputFileChange(InputFileChangeEventArgs e)
     {
         selectedFile = e.File;
         status = null;
+
+        // Immediately read the stream into memory
+        fileData = new MemoryStream();
+        await selectedFile.OpenReadStream(maxAllowedSize: 1024 * 1024).CopyToAsync(fileData);
+        fileData.Position = 0;
     }
 
     private async Task UploadImage()
     {
-        if (selectedFile is null)
+        if (selectedFile == null || fileData == null)
         {
-            status = "Please select a file first.";
+            status = "No file selected.";
             return;
         }
 
+        if (!selectedFile.ContentType.StartsWith("image/"))
+        {
+            status = "Please select a valid image file.";
+            return;
+        }
+
+        using var content = new MultipartFormDataContent();
+        var streamContent = new StreamContent(fileData);
+        streamContent.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue(selectedFile.ContentType);
+
+        content.Add(streamContent, "image", selectedFile.Name);
+
         try
         {
-            var content = new MultipartFormDataContent();
-            await using var stream = selectedFile.OpenReadStream(maxAllowedSize: 10 * 1024 * 1024); // 10 MB limit
-            content.Add(new StreamContent(stream), "image", selectedFile.Name);
-
             var response = await Http.PostAsync($"{ApiConfig.BaseUrl}/images/upload", content);
-
             if (response.IsSuccessStatusCode)
-            {
-                var result = await response.Content.ReadAsStringAsync();
-                status = $"Upload successful! Server response: {result}";
-            }
+                status = "Upload successful!";
             else
-            {
-                status = $"Upload failed: {response.ReasonPhrase}";
-            }
+                status = $"Upload failed: {await response.Content.ReadAsStringAsync()}";
         }
         catch (Exception ex)
         {
             status = $"Error: {ex.Message}";
-        }
-        finally
-        {
-            selectedFile = null; // Prevent reusing the same stream
         }
     }
 }

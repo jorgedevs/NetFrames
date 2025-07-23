@@ -47,8 +47,7 @@ app.MapGet("/images/{id}", (string id) =>
     return Results.File(filePath, "image/jpeg");
 });
 
-
-// Upload image endpoint
+// Upload image endpoint (save to disk)
 app.MapPost("/images/upload", async (HttpRequest request) =>
 {
     if (!request.HasFormContentType)
@@ -59,14 +58,16 @@ app.MapPost("/images/upload", async (HttpRequest request) =>
     if (file == null || file.Length == 0)
         return Results.BadRequest("No image uploaded.");
 
-    using var ms = new MemoryStream();
-    await file.CopyToAsync(ms);
-    var imageBytes = ms.ToArray();
     var id = Guid.NewGuid().ToString();
+    var fileName = $"{id}{Path.GetExtension(file.FileName)}";
+    var filePath = Path.Combine(imagesPath, fileName);
 
-    imageStore[id] = imageBytes;
+    await using (var stream = File.Create(filePath))
+    {
+        await file.CopyToAsync(stream);
+    }
 
-    return Results.Ok(new { id });
+    return Results.Ok(new { id = Path.GetFileNameWithoutExtension(fileName), fileName });
 })
 .WithName("UploadImage");
 
