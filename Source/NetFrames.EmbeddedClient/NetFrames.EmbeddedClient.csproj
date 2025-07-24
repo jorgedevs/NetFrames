@@ -11,6 +11,7 @@
         <PackageReference Include="Meadow.ProjectLab" Version="2.*" />
         <PackageReference Include="Meadow.Foundation.Audio.MicroAudio" Version="2.*" />
         <PackageReference Include="Meadow.Foundation.Graphics.MicroLayout" Version="2.*" />
+        <PackageReference Include="SimpleJpegDecoder" Version="0.*" />
     </ItemGroup>
     <ItemGroup>
         <None Update="meadow.config.yaml">

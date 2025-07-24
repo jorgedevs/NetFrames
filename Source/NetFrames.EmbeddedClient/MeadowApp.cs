@@ -1,50 +1,31 @@
 ﻿using Meadow;
 using Meadow.Devices;
-using Meadow.Foundation;
-using System;
+using NetFrames.EmbeddedClient.Controllers;
+using NetFrames.EmbeddedClient.Hardware;
 using System.Threading.Tasks;
 
 namespace NetFrames.EmbeddedClient;
 
 public class MeadowApp : ProjectLabCoreComputeApp
 {
-    private DisplayController? displayController;
+    private MainController? mainController;
 
     public override Task Initialize()
     {
-        Resolver.Log.LogLevel = Meadow.Logging.LogLevel.Trace;
+        Resolver.Log.Info("Initialize...");
 
-        Resolver.Log.Info($"Running on ProjectLab Hardware {Hardware.RevisionString}");
+        var hardware = new GalleryViewerProjectLabHardware(Hardware);
 
-        if (Hardware.RgbLed is { } rgbLed)
-        {
-            rgbLed.SetColor(Color.Blue);
-        }
+        mainController = new MainController();
+        mainController.Initialize(hardware);
 
-        if (Hardware.Display is { } display)
-        {
-            Resolver.Log.Trace("Creating DisplayController");
-            displayController = new DisplayController(display);
-            Resolver.Log.Trace("DisplayController up");
-        }
-
-        Resolver.Log.Info("Initialization complete");
-
-        return base.Initialize();
+        return Task.CompletedTask;
     }
 
-    public override async Task Run()
+    public override Task Run()
     {
         Resolver.Log.Info("Run...");
 
-        if (Hardware?.RgbLed is { } rgbLed)
-        {
-            Resolver.Log.Info("starting blink");
-            _ = rgbLed.StartBlink(
-                WildernessLabsColors.PearGreen,
-                TimeSpan.FromMilliseconds(500),
-                TimeSpan.FromMilliseconds(2000),
-                0.5f);
-        }
+        return Task.CompletedTask;
     }
 }
