@@ -10,8 +10,6 @@ namespace NetFrames.EmbeddedClient.Controllers;
 
 public class DisplayController
 {
-    bool currentTheme;
-
     MicroGraphics graphics;
 
     public DisplayController(
@@ -20,19 +18,17 @@ public class DisplayController
     {
         graphics = new MicroGraphics(display)
         {
-            IgnoreOutOfBoundsPixels = true,
-            Rotation = RotationType._90Degrees,
-            Stroke = 2
+            Rotation = displayRotation
         };
     }
 
     public void DrawSplashScreen()
     {
         graphics.Clear(ColorConstants.SplashColor, false);
-        DisplayJPG(0, 0, "splash.jpg");
+        DisplayJPG("splash.jpg");
     }
 
-    void DisplayJPG(int x, int y, string filename)
+    void DisplayJPG(string filename)
     {
         var buffer = LoadJpeg(LoadResource(filename));
         graphics.DrawBuffer(0, 0, buffer);

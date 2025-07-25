@@ -8,6 +8,14 @@
         <Nullable>enable</Nullable>
     </PropertyGroup>
     <ItemGroup>
+      <None Remove="Assets\IMG_7090.jpg" />
+      <None Remove="Assets\splash.jpg" />
+    </ItemGroup>
+    <ItemGroup>
+      <EmbeddedResource Include="Assets\IMG_7090.jpg" />
+      <EmbeddedResource Include="Assets\splash.jpg" />
+    </ItemGroup>
+    <ItemGroup>
         <PackageReference Include="Meadow.ProjectLab" Version="2.*" />
         <PackageReference Include="Meadow.Foundation.Audio.MicroAudio" Version="2.*" />
         <PackageReference Include="Meadow.Foundation.Graphics.MicroLayout" Version="2.*" />

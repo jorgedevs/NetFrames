@@ -26,6 +26,8 @@ public class MainController
             this.hardware.Display,
             this.hardware.DisplayRotation);
 
+        displayController.DrawSplashScreen();
+
         return Task.CompletedTask;
     }
 

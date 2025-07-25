@@ -7,18 +7,18 @@ namespace NetFrames.EmbeddedClient.Hardware;
 
 public class GalleryViewerProjectLabHardware : IGalleryViewerHardware
 {
-    private readonly IProjectLabHardware projLab;
+    private readonly IProjectLabHardware projectLab;
 
-    public IButton? LeftButton => projLab.LeftButton;
+    public IButton? LeftButton => projectLab.LeftButton;
 
-    public IButton? RightButton => projLab.RightButton;
+    public IButton? RightButton => projectLab.RightButton;
 
-    public IPixelDisplay? Display => projLab.Display;
+    public IPixelDisplay? Display => projectLab.Display;
 
     public RotationType DisplayRotation => RotationType._270Degrees;
 
-    public GalleryViewerProjectLabHardware(IProjectLabHardware projLab)
+    public GalleryViewerProjectLabHardware(IProjectLabHardware projectLab)
     {
-        this.projLab = projLab;
+        this.projectLab = projectLab;
     }
 }
