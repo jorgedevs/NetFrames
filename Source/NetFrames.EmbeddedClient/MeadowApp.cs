@@ -17,7 +17,7 @@ public class MeadowApp : ProjectLabCoreComputeApp
         var hardware = new GalleryViewerProjectLabHardware(Hardware);
 
         mainController = new MainController();
-        mainController.Initialize(hardware);
+        mainController?.Initialize(hardware);
 
         return Task.CompletedTask;
     }
@@ -25,6 +25,8 @@ public class MeadowApp : ProjectLabCoreComputeApp
     public override Task Run()
     {
         Resolver.Log.Info("Run...");
+
+        mainController?.Run();
 
         return Task.CompletedTask;
     }
