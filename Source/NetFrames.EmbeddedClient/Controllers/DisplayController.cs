@@ -26,6 +26,13 @@ public class DisplayController
         DisplayJPG("splash.jpg");
     }
 
+    public void DisplayImage(byte[] imageData)
+    {
+        var buffer = LoadJpeg(imageData);
+        graphics.DrawBuffer(0, 0, buffer);
+        graphics.Show();
+    }
+
     void DisplayJPG(string filename)
     {
         var buffer = LoadJpeg(LoadResource(filename));

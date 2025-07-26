@@ -36,4 +36,29 @@ public class RestClientController
             return imageFilenames;
         }
     }
+
+    public async Task<byte[]> GetImageAsync(string id)
+    {
+        using (HttpClient client = new HttpClient())
+        {
+            try
+            {
+                var response = await client.GetAsync($"{baseUrl}/images/{id}");
+                if (response.IsSuccessStatusCode)
+                {
+                    return await response.Content.ReadAsByteArrayAsync();
+                }
+                else
+                {
+                    Resolver.Log.Error($"Failed to fetch image {id}: {response.ReasonPhrase}");
+                    return Array.Empty<byte>();
+                }
+            }
+            catch (Exception ex)
+            {
+                Resolver.Log.Error($"Error fetching image {id}: {ex.Message}");
+                return Array.Empty<byte>();
+            }
+        }
+    }
 }

@@ -28,8 +28,6 @@ public class MainController
         displayController.DrawSplashScreen();
 
         restClientController = new RestClientController();
-
-
     }
 
     private async Task GetImagesAsync()
@@ -57,7 +55,15 @@ public class MainController
             {
                 Resolver.Log.Info("Network is connected. Fetching images...");
                 await GetImagesAsync();
-                //displayController.DisplayImageFilenames(imageFilenames);
+                var imageData = await restClientController.GetImageAsync(imageFilenames[0]);
+                if (imageData.Length > 0)
+                {
+                    displayController.DisplayImage(imageData);
+                }
+                else
+                {
+                    Resolver.Log.Error("Failed to fetch image data.");
+                }
             }
             else
             {
