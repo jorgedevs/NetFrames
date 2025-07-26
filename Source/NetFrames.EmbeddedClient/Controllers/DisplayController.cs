@@ -1,5 +1,4 @@
-﻿using Meadow;
-using Meadow.Foundation.Graphics;
+﻿using Meadow.Foundation.Graphics;
 using Meadow.Foundation.Graphics.Buffers;
 using Meadow.Peripherals.Displays;
 using SimpleJpegDecoder;
@@ -24,7 +23,6 @@ public class DisplayController
 
     public void DrawSplashScreen()
     {
-        graphics.Clear(ColorConstants.SplashColor, false);
         DisplayJPG("splash.jpg");
     }
 
@@ -57,13 +55,4 @@ public class DisplayController
             }
         }
     }
-}
-
-public static class ColorConstants
-{
-    public static Color SplashColor = Color.FromHex("06416C");
-    public static Color DayBackground = Color.FromHex("06BFCC");
-    public static Color NightBackground = Color.FromHex("133B4F");
-    public static Color DarkFont = Color.FromHex("06416C");
-    public static Color LightFont = Color.FromHex("FFFFFF");
 }
