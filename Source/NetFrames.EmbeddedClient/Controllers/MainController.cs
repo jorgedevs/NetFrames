@@ -1,5 +1,6 @@
 ﻿using Meadow;
 using NetFrames.EmbeddedClient.Contracts;
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
@@ -55,7 +56,9 @@ public class MainController
             {
                 Resolver.Log.Info("Network is connected. Fetching images...");
                 await GetImagesAsync();
-                var imageData = await restClientController.GetImageAsync(imageFilenames[0]);
+
+                var randomIndex = new Random().Next(imageFilenames.Count);
+                var imageData = await restClientController.GetImageAsync(imageFilenames[randomIndex]);
                 if (imageData.Length > 0)
                 {
                     displayController.DisplayImage(imageData);
@@ -72,7 +75,7 @@ public class MainController
 
             Resolver.Log.Info($"Is Connected: {hardware.NetworkAdapter.IsConnected}");
 
-            await Task.Delay(10000);
+            await Task.Delay(TimeSpan.FromMinutes(1));
         }
     }
 }
