@@ -1,4 +1,4 @@
-# NetFrames
+# NETFRAMES
 
 Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
 
@@ -18,11 +18,13 @@ Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor i
 
 Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
 
-[![Meadow.Desktop.Samples](Assets/netframes-portal.png)](/Source/Meadow.Desktop.Samples/)
+![NetFrames.WebPortal](Assets/netframes-portal.png)
 
 ### NetFrames.EmbeddedClient
 
 Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
+
+![NetFrames.EmbeddedClient](Assets/netframes-embedded-client.png)
 
 ## Build and Setup
 
