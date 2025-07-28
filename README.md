@@ -1,6 +1,6 @@
 # NETFRAMES
 
-Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
+NetFrames is a lightweight, connected display platform that allows digital picture frames or embedded screens to automatically fetch and display images from a central server. Designed for Raspberry Pi, Meadow, or mobile clients, NetFrames is ideal for personal photo galleries, public displays, or IoT art installations.
 
 ## Contents
 
@@ -9,6 +9,8 @@ Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor i
 * [Support](#support)
 
 ## Architecture
+
+![NetFrames.WebPortal](Assets/netframes-software-stack.png)
 
 ### NetFrames.Server
 
