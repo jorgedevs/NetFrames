@@ -8,6 +8,8 @@ namespace NetFrames.EmbeddedClient.Controllers;
 
 public class MainController
 {
+    private int counter;
+    private Random random;
     private List<string> imageFilenames;
 
     private IGalleryViewerHardware hardware;
@@ -17,10 +19,12 @@ public class MainController
 
     public MainController() { }
 
-    public async Task Initialize(IGalleryViewerHardware hardware)
+    public Task Initialize(IGalleryViewerHardware hardware)
     {
         this.hardware = hardware;
 
+        counter = 0;
+        random = new Random();
         imageFilenames = new List<string>();
 
         displayController = new DisplayController(
@@ -29,6 +33,8 @@ public class MainController
         displayController.DrawSplashScreen();
 
         restClientController = new RestClientController();
+
+        return Task.CompletedTask;
     }
 
     private async Task GetImagesAsync()
@@ -54,21 +60,31 @@ public class MainController
         {
             if (hardware.NetworkAdapter.IsConnected)
             {
-                Resolver.Log.Info("Network is connected. Fetching images...");
-                await GetImagesAsync();
-
-                var randomIndex = new Random().Next(imageFilenames.Count);
-                var imageData = await restClientController.GetImageAsync(imageFilenames[randomIndex]);
-                if (imageData.Length > 0)
+                if (imageFilenames.Count == 0)
                 {
-                    displayController.DisplayImage(imageData);
-                }
-                else
-                {
-                    Resolver.Log.Error("Failed to fetch image data.");
+                    Resolver.Log.Info("Network is connected. Fetching images...");
+                    await GetImagesAsync();
+                    await Task.Delay(TimeSpan.FromSeconds(5)); // Attempt to prevent ESP32 panic
                 }
 
-                await Task.Delay(TimeSpan.FromMinutes(1));
+                if (imageFilenames.Count > 0)
+                {
+                    var imageData = await restClientController.GetImageAsync(imageFilenames[random.Next(imageFilenames.Count)]);
+                    if (imageData.Length > 0)
+                    {
+                        displayController.DisplayImage(imageData);
+                        counter++;
+                        Resolver.Log.Info($"Endpoint counter {counter}");
+
+                        await Task.Delay(TimeSpan.FromMinutes(1));
+                    }
+                    else
+                    {
+                        Resolver.Log.Error("Failed to fetch image data.");
+
+                        await Task.Delay(TimeSpan.FromSeconds(10));
+                    }
+                }
             }
             else
             {
