@@ -67,15 +67,15 @@ public class MainController
                 {
                     Resolver.Log.Error("Failed to fetch image data.");
                 }
+
+                await Task.Delay(TimeSpan.FromMinutes(1));
             }
             else
             {
                 Resolver.Log.Info("Network is not connected. Retrying...");
+
+                await Task.Delay(TimeSpan.FromSeconds(10));
             }
-
-            Resolver.Log.Info($"Is Connected: {hardware.NetworkAdapter.IsConnected}");
-
-            await Task.Delay(TimeSpan.FromMinutes(1));
         }
     }
 }
