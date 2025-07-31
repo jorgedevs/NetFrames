@@ -18,7 +18,7 @@ Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor i
 
 ### NetFrames.WebPortal
 
-Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
+The purpose of this portal is to manage the image collection that client devices will display on its screens.
 
 ![NetFrames.WebPortal](Assets/netframes-portal.png)
 
