@@ -12,17 +12,17 @@ NetFrames is a lightweight, connected display platform that allows digital pictu
 
 ![NetFrames.WebPortal](Assets/netframes-software-stack.png)
 
-### NetFrames.Server
+### [NetFrames.Server](/Source/NetFrames.Server/)
 
 NetFrames.Server is a .NET Core Web API, exposing endpoints to upload image, get list of images and specific images by ID. 
 
-### NetFrames.WebPortal
+### [NetFrames.WebPortal](/Source/NetFrames.WebPortal/)
 
 The purpose of this portal is to manage the image collection that client devices will display on its screens.
 
 ![NetFrames.WebPortal](Assets/netframes-portal.png)
 
-### NetFrames.EmbeddedClient
+### [NetFrames.EmbeddedClient](/Source/NetFrames.EmbeddedClient/)
 
 Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
 
