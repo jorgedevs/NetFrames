@@ -6,7 +6,8 @@ using System.Threading.Tasks;
 
 namespace NetFrames.EmbeddedClient;
 
-public class MeadowApp : ProjectLabCoreComputeApp
+//public class MeadowApp : ProjectLabCoreComputeApp
+public class MeadowApp : App<F7FeatherV2>
 {
     private MainController? mainController;
 
@@ -14,7 +15,8 @@ public class MeadowApp : ProjectLabCoreComputeApp
     {
         Resolver.Log.Info("Initialize...");
 
-        var hardware = new GalleryViewerProjectLabHardware(Hardware);
+        //var hardware = new NetFramesProjectLabHardware(Hardware);
+        var hardware = new NetFramesF7FeatherHardware(Device);
 
         mainController = new MainController();
         mainController?.Initialize(hardware);

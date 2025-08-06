@@ -5,17 +5,17 @@ using NetFrames.EmbeddedClient.Contracts;
 
 namespace NetFrames.EmbeddedClient.Hardware;
 
-public class GalleryViewerProjectLabHardware : IGalleryViewerHardware
+public class NetFramesProjectLabHardware : INetFramesHardware
 {
     private readonly IProjectLabHardware projectLab;
 
-    public IPixelDisplay? Display => projectLab.Display;
+    public IPixelDisplay? Display => (IRotatableDisplay?)projectLab.Display;
 
     public RotationType DisplayRotation => RotationType._270Degrees;
 
     public IWiFiNetworkAdapter NetworkAdapter => projectLab.ComputeModule.NetworkAdapters.Primary<IWiFiNetworkAdapter>();
 
-    public GalleryViewerProjectLabHardware(IProjectLabHardware projectLab)
+    public NetFramesProjectLabHardware(IProjectLabHardware projectLab)
     {
         this.projectLab = projectLab;
     }

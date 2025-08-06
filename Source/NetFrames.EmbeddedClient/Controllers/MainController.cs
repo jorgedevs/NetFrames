@@ -12,14 +12,14 @@ public class MainController
     private Random random;
     private List<string> imageFilenames;
 
-    private IGalleryViewerHardware hardware;
+    private INetFramesHardware hardware;
 
     private DisplayController displayController;
     private RestClientController restClientController;
 
     public MainController() { }
 
-    public Task Initialize(IGalleryViewerHardware hardware)
+    public Task Initialize(INetFramesHardware hardware)
     {
         this.hardware = hardware;
 

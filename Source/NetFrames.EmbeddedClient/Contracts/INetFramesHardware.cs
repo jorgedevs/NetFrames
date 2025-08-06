@@ -3,7 +3,7 @@ using Meadow.Peripherals.Displays;
 
 namespace NetFrames.EmbeddedClient.Contracts;
 
-public interface IGalleryViewerHardware
+public interface INetFramesHardware
 {
     IPixelDisplay? Display { get; }
 
