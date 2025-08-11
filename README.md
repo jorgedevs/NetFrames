@@ -14,7 +14,10 @@ NetFrames is a lightweight, connected display platform that allows digital pictu
 
 ### [NetFrames.Server](/Source/NetFrames.Server/)
 
-NetFrames.Server is a .NET Core Web API, exposing endpoints to upload image, get list of images and specific images by ID. 
+NetFrames.Server is a .NET Core Web API, exposing endpoints to:
+* Upload an image
+* Get list of images
+* Get specific image by ID.
 
 ### [NetFrames.WebPortal](/Source/NetFrames.WebPortal/)
 
@@ -32,7 +35,6 @@ Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor i
 
 Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
 
-
 ## Roadmap
 
 The following table show's whats available and what features are next in upcoming updates.
@@ -40,4 +42,3 @@ The following table show's whats available and what features are next in upcomin
 ## Support
 
 Finding bugs or wierd behaviors? File an [issue](https://github.com/jorgedevs/NetFrames/issues) with repro steps.
-
