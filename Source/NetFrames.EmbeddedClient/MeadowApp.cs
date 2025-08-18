@@ -1,4 +1,4 @@
-﻿using Meadow;
+using Meadow;
 using Meadow.Devices;
 using NetFrames.EmbeddedClient.Controllers;
 using NetFrames.EmbeddedClient.Hardware;

@@ -1,0 +1,14 @@
+{
+    "configurations": [
+        {
+            "name": "/dev/ttyACM0",
+            "type": "meadow",
+            "request": "launch",
+            "preLaunchTask": "meadow: Build",
+            "deviceInfo": {
+                "name": "/dev/ttyACM0",
+                "serial": "/dev/ttyACM0"
+            }
+        }
+    ]
+}
