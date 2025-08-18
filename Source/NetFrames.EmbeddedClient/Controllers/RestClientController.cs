@@ -1,4 +1,4 @@
-﻿using Meadow;
+using Meadow;
 using Meadow.Foundation.Serialization;
 using System;
 using System.Collections.Generic;
@@ -10,7 +10,8 @@ namespace NetFrames.EmbeddedClient.Controllers;
 
 public class RestClientController
 {
-    string baseUrl = "http://192.168.50.226:5000";
+    // Base URL for the REST API (IP Address:Port)
+    string baseUrl = "http://192.168.1.1:5000";
 
     public async Task<List<string>> GetImageFilenamesAsync()
     {
