@@ -1,4 +1,4 @@
-![NetFrames GitHub Banner](/Assets/jorgedevs-netframes.jpg)
+![NetFrames GitHub Banner](/Assets/Images/jorgedevs-netframes.jpg)
 
 # NetFrames
 
@@ -12,7 +12,7 @@ NetFrames is a lightweight, connected display platform that allows digital pictu
 
 ## Architecture
 
-![NetFrames.WebPortal](Assets/netframes-software-stack.png)
+![NetFrames.WebPortal](Assets/Images/netframes-software-stack.png)
 
 ### [NetFrames.Server](/Source/NetFrames.Server/)
 
@@ -25,13 +25,24 @@ NetFrames.Server is a .NET Core Web API, exposing endpoints to:
 
 The purpose of this portal is to manage the image collection that client devices will display on its screens.
 
-![NetFrames.WebPortal](Assets/netframes-portal.png)
+![NetFrames.WebPortal](Assets/Images/netframes-portal.png)
 
 ### [NetFrames.EmbeddedClient](/Source/NetFrames.EmbeddedClient/)
 
 Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
 
-![NetFrames.EmbeddedClient](Assets/netframes-embedded-client.png)
+![NetFrames.EmbeddedClient](Assets/Images/netframes-embedded-client.png)
+
+#### Wiring
+
+
+
+#### Enclosure
+
+Feel free to 3D print this enclosure so you can place it on a desk or mount it on a wall. STL files are [here](/Assets/Enclosure/) or download directly from [TinkerCad](https://www.tinkercad.com/things/222cHvoUr3W-netframes-case).
+
+![NetFrames.EmbeddedClient](Assets/Images/netframes-enclosure.jpg)
+
 
 ## Build and Setup
 
