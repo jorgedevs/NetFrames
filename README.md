@@ -31,6 +31,8 @@ The purpose of this portal is to manage the image collection that client devices
 
 Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
 
+![NetFrames.EmbeddedClient](Assets/Images/netframes-embedded-client.jpg)
+
 #### Wiring
 
 You can wire a Meadow F7 Feather board with an ILI9341 like the diagram below:
