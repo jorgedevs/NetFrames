@@ -29,13 +29,13 @@ The purpose of this portal is to manage the image collection that client devices
 
 ### [NetFrames.EmbeddedClient](/Source/NetFrames.EmbeddedClient/)
 
-Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
+You can build this digital portrait using a [Meadow F7 Feather](https://store.wildernesslabs.co/collections/frontpage/products/meadow-f7-feather) board and a ILI9341 TFT SPI 320x240 display.
 
 ![NetFrames.EmbeddedClient](Assets/Images/netframes-embedded-client.jpg)
 
 #### Wiring
 
-You can wire a Meadow F7 Feather board with an ILI9341 like the diagram below:
+Wire the Meadow F7 Feather board with the ILI9341 like the diagram below:
 
 ![wiring netframes with a Meadow board](Assets/Images/netframes-wiring.jpg)
 
