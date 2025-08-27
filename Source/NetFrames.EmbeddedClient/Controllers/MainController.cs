@@ -2,6 +2,7 @@
 using NetFrames.EmbeddedClient.Contracts;
 using System;
 using System.Collections.Generic;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace NetFrames.EmbeddedClient.Controllers;
@@ -14,7 +15,7 @@ public class MainController
 
     private INetFramesHardware hardware;
 
-    private DisplayController displayController;
+    private DisplayController2 displayController;
     private RestClientController restClientController;
 
     public MainController() { }
@@ -27,10 +28,12 @@ public class MainController
         random = new Random();
         imageFilenames = new List<string>();
 
-        displayController = new DisplayController(
+        displayController = new DisplayController2(
             this.hardware.Display,
             this.hardware.DisplayRotation);
-        displayController.DrawSplashScreen();
+        displayController.ShowSplashScreen();
+        Thread.Sleep(5000);
+        displayController.ShowGalleryScreen();
 
         restClientController = new RestClientController();
 
