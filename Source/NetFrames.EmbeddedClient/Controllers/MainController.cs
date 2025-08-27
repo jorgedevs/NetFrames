@@ -15,7 +15,7 @@ public class MainController
 
     private INetFramesHardware hardware;
 
-    private DisplayController2 displayController;
+    private DisplayController displayController;
     private RestClientController restClientController;
 
     public MainController() { }
@@ -28,7 +28,7 @@ public class MainController
         random = new Random();
         imageFilenames = new List<string>();
 
-        displayController = new DisplayController2(
+        displayController = new DisplayController(
             this.hardware.Display,
             this.hardware.DisplayRotation);
         displayController.ShowSplashScreen();

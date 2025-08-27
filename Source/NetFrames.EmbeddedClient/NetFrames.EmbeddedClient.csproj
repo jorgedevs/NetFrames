@@ -8,14 +8,11 @@
         <Nullable>enable</Nullable>
     </PropertyGroup>
     <ItemGroup>
-      <None Remove="Assets\images0.jpg" />
       <None Remove="Assets\img_splash.bmp" />
-      <None Remove="Assets\splash.jpg" />
     </ItemGroup>
     <ItemGroup>
-      <EmbeddedResource Include="Assets\images0.jpg" />
+      <EmbeddedResource Include="Assets\img_sample.jpg" />
       <EmbeddedResource Include="Assets\img_splash.bmp" />
-      <EmbeddedResource Include="Assets\splash.jpg" />
     </ItemGroup>
     <ItemGroup>
         <PackageReference Include="Meadow.ProjectLab" Version="2.*" />

@@ -1,43 +1,59 @@
 ﻿using Meadow.Foundation.Graphics;
 using Meadow.Foundation.Graphics.Buffers;
+using Meadow.Foundation.Graphics.MicroLayout;
 using Meadow.Peripherals.Displays;
 using SimpleJpegDecoder;
-using System.IO;
-using System.Reflection;
 
 namespace NetFrames.EmbeddedClient.Controllers;
 
-public class DisplayController
+internal class DisplayController
 {
-    MicroGraphics graphics;
+    private DisplayScreen displayScreen;
+
+    private AbsoluteLayout splashLayout;
+    private AbsoluteLayout galleryLayout;
+
+    private Picture picture;
 
     public DisplayController(
         IPixelDisplay? display,
         RotationType displayRotation)
     {
-        graphics = new MicroGraphics(display)
+        displayScreen = new DisplayScreen(display, displayRotation);
+    }
+
+    public void ShowSplashScreen()
+    {
+        splashLayout = new AbsoluteLayout(displayScreen.Width, displayScreen.Height);
+
+        var image = Image.LoadFromResource("NetFrames.EmbeddedClient.Assets.img_splash.bmp");
+        splashLayout.Controls.Add(new Picture(displayScreen.Width, displayScreen.Height, image));
+
+        displayScreen.Controls.Add(splashLayout);
+    }
+
+    public void ShowGalleryScreen()
+    {
+        galleryLayout = new AbsoluteLayout(displayScreen.Width, displayScreen.Height);
+
+        displayScreen.Controls.Add(galleryLayout);
+    }
+
+    public void DisplayImage(byte[] jpgData)
+    {
+        var buffer = LoadJpeg(jpgData);
+        var image = Image.LoadFromPixelData(buffer);
+
+        if (picture == null)
         {
-            Rotation = displayRotation
-        };
-    }
-
-    public void DrawSplashScreen()
-    {
-        DisplayJPG("splash.jpg");
-    }
-
-    public void DisplayImage(byte[] imageData)
-    {
-        var buffer = LoadJpeg(imageData);
-        graphics.DrawBuffer(0, 0, buffer);
-        graphics.Show();
-    }
-
-    void DisplayJPG(string filename)
-    {
-        var buffer = LoadJpeg(LoadResource(filename));
-        graphics.DrawBuffer(0, 0, buffer);
-        graphics.Show();
+            picture = new Picture(displayScreen.Width, displayScreen.Height, image);
+            galleryLayout.Controls.Add(picture);
+        }
+        else
+        {
+            picture.Image = image;
+            displayScreen.Invalidate();
+        }
     }
 
     IPixelBuffer LoadJpeg(byte[] jpgData)
@@ -46,20 +62,5 @@ public class DisplayController
         var jpg = decoder.DecodeJpeg(jpgData);
 
         return new BufferRgb888(decoder.Width, decoder.Height, jpg);
-    }
-
-    byte[] LoadResource(string filename)
-    {
-        var assembly = Assembly.GetExecutingAssembly();
-        var resourceName = $"NetFrames.EmbeddedClient.Assets.{filename}";
-
-        using (Stream stream = assembly.GetManifestResourceStream(resourceName))
-        {
-            using (var ms = new MemoryStream())
-            {
-                stream.CopyTo(ms);
-                return ms.ToArray();
-            }
-        }
     }
 }
