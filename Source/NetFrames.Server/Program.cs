@@ -71,4 +71,16 @@ app.MapPost("/images/upload", async (HttpRequest request) =>
 })
 .WithName("UploadImage");
 
+app.MapDelete("/images/{id}", (string id) =>
+{
+    var filePath = Path.Combine(imagesPath, $"{id}.jpg");
+    if (!File.Exists(filePath))
+    {
+        return Results.NotFound();
+    }
+
+    File.Delete(filePath);
+
+    return Results.Ok(new { message = $"Image {id} deleted." });
+});
 app.Run();

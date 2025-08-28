@@ -18,10 +18,13 @@ else if (imageIds?.Any() == true)
     <div class="image-grid">
         @foreach (var id in imageIds)
         {
-            <img src="@($"{ApiConfig.BaseUrl}/images/{id}")"
-                 class="grid-image"
-                 @onclick="() => ShowModal(id)"
-                 alt="Gallery image" />
+            <div class="image-container">
+                <input type="checkbox" class="image-checkbox" />
+                <img src="@($"{ApiConfig.BaseUrl}/images/{id}")"
+                     class="grid-image"
+                     @onclick="() => ShowModal(id)"
+                     alt="Gallery image" />
+            </div>
         }
     </div>
 }
@@ -34,10 +37,19 @@ else
 {
     <div class="modal-backdrop" @onclick="CloseModal">
         <div class="modal-content" @onclick:stopPropagation>
-            <img 
-                src="@($"{ApiConfig.BaseUrl}/images/{selectedId}")"
-                class="modal-image" 
-                alt="Large view" />
+            <div>
+                <img 
+                    src="@($"{ApiConfig.BaseUrl}/images/{selectedId}")"
+                    class="modal-image" 
+                    alt="Large view" />
+            </div>
+
+            <div style="display: flex; align-items: center; margin-top: 10px; width:100%">
+                <p style="flex: 1; margin: 0;">image_2025_04_21.jpg</p>
+                <button class="trash-btn" @onclick="DeleteImage" title="Delete image" style="margin-left: auto;">
+                    <i class="bi bi-trash"></i>
+                </button>
+            </div>
         </div>
     </div>
 }
@@ -65,6 +77,24 @@ else
     {
         selectedId = id;
         showModal = true;
+    }
+
+    private async Task DeleteImage()
+    {
+        if (selectedId is null)
+            return;
+
+        var response = await Http.DeleteAsync($"{ApiConfig.BaseUrl}/images/{selectedId}");
+        if (response.IsSuccessStatusCode)
+        {
+            imageIds?.Remove(selectedId);
+            showModal = false;
+            StateHasChanged();
+        }
+        else
+        {
+            // Optionally show an error message
+        }
     }
 
     private void CloseModal()
