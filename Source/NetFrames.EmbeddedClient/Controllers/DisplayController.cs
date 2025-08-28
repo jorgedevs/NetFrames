@@ -6,13 +6,11 @@ using SimpleJpegDecoder;
 
 namespace NetFrames.EmbeddedClient.Controllers;
 
-internal class DisplayController
+public class DisplayController
 {
     private DisplayScreen displayScreen;
-
     private AbsoluteLayout splashLayout;
     private AbsoluteLayout galleryLayout;
-
     private Picture picture;
 
     public DisplayController(
@@ -56,7 +54,7 @@ internal class DisplayController
         }
     }
 
-    IPixelBuffer LoadJpeg(byte[] jpgData)
+    private IPixelBuffer LoadJpeg(byte[] jpgData)
     {
         var decoder = new JpegDecoder();
         var jpg = decoder.DecodeJpeg(jpgData);

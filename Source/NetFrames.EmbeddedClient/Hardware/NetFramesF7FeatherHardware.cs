@@ -31,7 +31,7 @@ public class NetFramesF7FeatherHardware : INetFramesHardware
             dcPin: featherF7.Pins.D01,
             resetPin: featherF7.Pins.D00,
             width: 240, height: 320,
-            ColorMode.Format12bppRgb444
+            ColorMode.Format18bppRgb666
         );
     }
 }
