@@ -9,6 +9,8 @@ namespace NetFrames.EmbeddedClient;
 //public class MeadowApp : ProjectLabCoreComputeApp
 public class MeadowApp : App<F7FeatherV2>
 {
+    public static double VERSION { get; set; } = 1.2;
+
     private MainController? mainController;
 
     public override Task Initialize()

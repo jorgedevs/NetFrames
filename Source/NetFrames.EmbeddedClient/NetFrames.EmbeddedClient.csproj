@@ -8,9 +8,11 @@
         <Nullable>enable</Nullable>
     </PropertyGroup>
     <ItemGroup>
+      <None Remove="Assets\img_logo.bmp" />
       <None Remove="Assets\img_splash.bmp" />
     </ItemGroup>
     <ItemGroup>
+      <EmbeddedResource Include="Assets\img_logo.bmp" />
       <EmbeddedResource Include="Assets\img_sample.jpg" />
       <EmbeddedResource Include="Assets\img_splash.bmp" />
     </ItemGroup>
