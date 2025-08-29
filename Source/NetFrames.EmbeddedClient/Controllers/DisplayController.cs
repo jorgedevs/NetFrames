@@ -12,9 +12,7 @@ namespace NetFrames.EmbeddedClient.Controllers;
 public class DisplayController
 {
     private readonly Color backgroundColor = Color.FromHex("06416D");
-
     private readonly Font12x16 font12x16 = new Font12x16();
-
     private readonly DisplayScreen displayScreen;
 
     private AbsoluteLayout splashLayout;
