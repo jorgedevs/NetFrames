@@ -34,7 +34,7 @@ public class MainController
             this.hardware.DisplayRotation);
         displayController.ShowSplashScreen();
         Thread.Sleep(5000);
-        //displayController.ShowGalleryScreen();
+        displayController.ShowGalleryScreen();
 
         restClientController = new RestClientController();
 
@@ -57,13 +57,13 @@ public class MainController
 
     private void OnUpdateAvailable(IUpdateService updateService, UpdateInfo info, CancellationTokenSource cancel)
     {
-        //_ = hardware.RgbPwmLed.StartBlink(Color.Magenta);
+        _ = hardware.RgbPwmLed.StartBlink(Color.Magenta);
         displayController.UpdateStatus("Update available!");
     }
 
     private void OnUpdateRetrieved(IUpdateService updateService, UpdateInfo info, CancellationTokenSource cancel)
     {
-        //_ = hardware.RgbPwmLed.StartBlink(Color.Cyan);
+        _ = hardware.RgbPwmLed.StartBlink(Color.Cyan);
         displayController.UpdateStatus("Update retrieved!");
     }
 
@@ -80,6 +80,8 @@ public class MainController
 
     private async Task GetImagesAsync()
     {
+        _ = hardware.RgbPwmLed.StartBlink(Color.Red);
+
         await restClientController.GetImageFilenamesAsync()
             .ContinueWith(task =>
             {
@@ -93,6 +95,8 @@ public class MainController
                     Resolver.Log.Error("Failed to fetch image filenames.");
                 }
             });
+
+        _ = hardware.RgbPwmLed.StartBlink(Color.Green);
     }
 
     private string FormatStatusMessage(UpdateState state)
@@ -132,31 +136,31 @@ public class MainController
         {
             if (hardware.NetworkAdapter.IsConnected)
             {
-                //if (imageFilenames.Count == 0)
-                //{
-                //    Resolver.Log.Info("Network is connected. Fetching images...");
-                //    await GetImagesAsync();
-                //    await Task.Delay(TimeSpan.FromSeconds(5)); // Attempt to prevent ESP32 panic
-                //}
+                if (imageFilenames.Count == 0)
+                {
+                    Resolver.Log.Info("Network is connected. Fetching images...");
+                    await GetImagesAsync();
+                    await Task.Delay(TimeSpan.FromSeconds(5)); // Attempt to prevent ESP32 panic
+                }
 
-                //if (imageFilenames.Count > 0)
-                //{
-                //    var imageData = await restClientController.GetImageAsync(imageFilenames[random.Next(imageFilenames.Count)]);
-                //    if (imageData.Length > 0)
-                //    {
-                //        displayController.DisplayImage(imageData);
-                //        counter++;
-                //        Resolver.Log.Info($"Endpoint counter {counter}");
+                if (imageFilenames.Count > 0)
+                {
+                    var imageData = await restClientController.GetImageAsync(imageFilenames[random.Next(imageFilenames.Count)]);
+                    if (imageData.Length > 0)
+                    {
+                        displayController.DisplayImage(imageData);
+                        counter++;
+                        Resolver.Log.Info($"Endpoint counter {counter}");
 
-                await Task.Delay(TimeSpan.FromMinutes(1));
-                //    }
-                //    else
-                //    {
-                //        Resolver.Log.Error("Failed to fetch image data.");
+                        await Task.Delay(TimeSpan.FromMinutes(1));
+                    }
+                    else
+                    {
+                        Resolver.Log.Error("Failed to fetch image data.");
 
-                //        await Task.Delay(TimeSpan.FromSeconds(10));
-                //    }
-                //}
+                        await Task.Delay(TimeSpan.FromSeconds(10));
+                    }
+                }
             }
             else
             {

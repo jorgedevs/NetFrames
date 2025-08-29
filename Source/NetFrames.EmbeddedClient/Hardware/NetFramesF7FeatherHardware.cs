@@ -1,7 +1,9 @@
 ﻿using Meadow;
 using Meadow.Foundation.Displays;
+using Meadow.Foundation.Leds;
 using Meadow.Hardware;
 using Meadow.Peripherals.Displays;
+using Meadow.Peripherals.Leds;
 using Meadow.Units;
 using NetFrames.EmbeddedClient.Contracts;
 
@@ -10,6 +12,8 @@ namespace NetFrames.EmbeddedClient.Hardware;
 public class NetFramesF7FeatherHardware : INetFramesHardware
 {
     private readonly IF7FeatherMeadowDevice featherF7;
+
+    public IRgbPwmLed? RgbPwmLed { get; }
 
     public IPixelDisplay? Display { get; }
 
@@ -20,6 +24,11 @@ public class NetFramesF7FeatherHardware : INetFramesHardware
     public NetFramesF7FeatherHardware(IF7FeatherMeadowDevice featherF7)
     {
         this.featherF7 = featherF7;
+
+        RgbPwmLed = new RgbPwmLed(
+            redPwmPin: featherF7.Pins.OnboardLedRed,
+            greenPwmPin: featherF7.Pins.OnboardLedGreen,
+            bluePwmPin: featherF7.Pins.OnboardLedBlue);
 
         var config = new SpiClockConfiguration(new Frequency(48000, Frequency.UnitType.Kilohertz), SpiClockConfiguration.Mode.Mode3);
         var spiBus = featherF7.CreateSpiBus(featherF7.Pins.SCK, featherF7.Pins.MOSI, featherF7.Pins.MISO, config);
