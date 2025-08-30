@@ -57,20 +57,21 @@ public class MainController
 
     private void OnUpdateAvailable(IUpdateService updateService, UpdateInfo info, CancellationTokenSource cancel)
     {
-        _ = hardware.RgbPwmLed.StartBlink(Color.Magenta);
+        hardware?.RgbPwmLed?.StartBlink(Color.Magenta);
         displayController.ShowSplashScreen();
         displayController.UpdateStatus("Update available!");
     }
 
     private void OnUpdateRetrieved(IUpdateService updateService, UpdateInfo info, CancellationTokenSource cancel)
     {
-        _ = hardware.RgbPwmLed.StartBlink(Color.Cyan);
+        hardware?.RgbPwmLed?.StartBlink(Color.Cyan);
         displayController.UpdateStatus("Update retrieved!");
     }
 
     private void OnRetrieveProgress(IUpdateService updateService, UpdateInfo info, CancellationTokenSource cancel)
     {
-        short percentage = (short)(((double)info.DownloadProgress / info.FileSize) * 100);
+        displayController.UpdateStatus("Downloading update...");
+        short percentage = (short)((double)info.DownloadProgress / info.FileSize * 100);
         displayController.UpdateDownloadProgress(percentage);
     }
 
@@ -81,7 +82,7 @@ public class MainController
 
     private async Task GetImagesAsync()
     {
-        _ = hardware.RgbPwmLed.StartBlink(Color.Red);
+        hardware?.RgbPwmLed?.StartBlink(Color.Red);
 
         await restClientController.GetImageFilenamesAsync()
             .ContinueWith(task =>
@@ -97,7 +98,7 @@ public class MainController
                 }
             });
 
-        _ = hardware.RgbPwmLed.StartBlink(Color.Green);
+        hardware?.RgbPwmLed?.StartBlink(Color.Green);
     }
 
     private string FormatStatusMessage(UpdateState state)
@@ -135,6 +136,10 @@ public class MainController
     {
         while (true)
         {
+            // Show a sample image for testing purposes
+            //displayController.DisplaySampleImage();
+            //await Task.Delay(TimeSpan.FromMinutes(1));
+
             if (hardware.NetworkAdapter.IsConnected)
             {
                 if (imageFilenames.Count == 0)

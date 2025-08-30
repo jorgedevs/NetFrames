@@ -5,6 +5,8 @@ using Meadow.Foundation.Graphics.MicroLayout;
 using Meadow.Peripherals.Displays;
 using SimpleJpegDecoder;
 using System;
+using System.IO;
+using System.Reflection;
 using System.Threading;
 
 namespace NetFrames.EmbeddedClient.Controllers;
@@ -31,9 +33,26 @@ public class DisplayController
         displayScreen = new DisplayScreen(display, displayRotation);
     }
 
-    public void UpdateStatus(string text)
+    private byte[] LoadResource(string fileName)
     {
-        status.Text = text;
+        var assembly = Assembly.GetExecutingAssembly();
+
+        using (Stream stream = assembly.GetManifestResourceStream(fileName))
+        {
+            using (var ms = new MemoryStream())
+            {
+                stream.CopyTo(ms);
+                return ms.ToArray();
+            }
+        }
+    }
+
+    private IPixelBuffer LoadJpeg(byte[] jpgData)
+    {
+        var decoder = new JpegDecoder();
+        var jpg = decoder.DecodeJpeg(jpgData);
+
+        return new BufferRgb888(decoder.Width, decoder.Height, jpg);
     }
 
     public void LoadSplashScreen()
@@ -105,6 +124,22 @@ public class DisplayController
         splashLayout.IsVisible = false;
     }
 
+    public void DisplaySampleImage()
+    {
+        var buffer = LoadJpeg(LoadResource("NetFrames.EmbeddedClient.Assets.img_sample.jpg"));
+        var image = Image.LoadFromPixelData(buffer);
+        var picture = new Picture(320, 240, image);
+        galleryLayout.Controls.Add(picture);
+    }
+
+    public void UpdateStatus(string text)
+    {
+        if (status.Text != text)
+        {
+            status.Text = text;
+        }
+    }
+
     public void DisplayImage(byte[] jpgData)
     {
         var buffer = LoadJpeg(jpgData);
@@ -143,13 +178,5 @@ public class DisplayController
             progressBar.IsVisible = false;
             progressValue.IsVisible = false;
         }
-    }
-
-    private IPixelBuffer LoadJpeg(byte[] jpgData)
-    {
-        var decoder = new JpegDecoder();
-        var jpg = decoder.DecodeJpeg(jpgData);
-
-        return new BufferRgb888(decoder.Width, decoder.Height, jpg);
     }
 }
