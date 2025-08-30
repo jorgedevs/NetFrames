@@ -32,9 +32,9 @@ public class MainController
         displayController = new DisplayController(
             this.hardware.Display,
             this.hardware.DisplayRotation);
-        displayController.ShowSplashScreen();
+        displayController.LoadSplashScreen();
         Thread.Sleep(5000);
-        displayController.ShowGalleryScreen();
+        displayController.LoadGalleryScreen();
 
         restClientController = new RestClientController();
 
@@ -58,6 +58,7 @@ public class MainController
     private void OnUpdateAvailable(IUpdateService updateService, UpdateInfo info, CancellationTokenSource cancel)
     {
         _ = hardware.RgbPwmLed.StartBlink(Color.Magenta);
+        displayController.ShowSplashScreen();
         displayController.UpdateStatus("Update available!");
     }
 

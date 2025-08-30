@@ -36,7 +36,7 @@ public class DisplayController
         status.Text = text;
     }
 
-    public void ShowSplashScreen()
+    public void LoadSplashScreen()
     {
         splashLayout = new AbsoluteLayout(displayScreen.Width, displayScreen.Height)
         {
@@ -86,11 +86,23 @@ public class DisplayController
         displayScreen.Controls.Add(splashLayout);
     }
 
-    public void ShowGalleryScreen()
+    public void LoadGalleryScreen()
     {
         galleryLayout = new AbsoluteLayout(displayScreen.Width, displayScreen.Height);
 
         displayScreen.Controls.Add(galleryLayout);
+    }
+
+    public void ShowSplashScreen()
+    {
+        splashLayout.IsVisible = true;
+        galleryLayout.IsVisible = false;
+    }
+
+    public void ShowGalleryScreen()
+    {
+        galleryLayout.IsVisible = true;
+        splashLayout.IsVisible = false;
     }
 
     public void DisplayImage(byte[] jpgData)
