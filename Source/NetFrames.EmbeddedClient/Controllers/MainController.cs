@@ -154,8 +154,8 @@ public class MainController
                     var imageData = await restClientController.GetImageAsync(imageFilenames[random.Next(imageFilenames.Count)]);
                     if (imageData.Length > 0)
                     {
-                        displayController.DisplayImage(imageData);
                         counter++;
+                        displayController.DisplayImage(imageData, counter);
                         Resolver.Log.Info($"Endpoint counter {counter}");
 
                         await Task.Delay(TimeSpan.FromMinutes(1));

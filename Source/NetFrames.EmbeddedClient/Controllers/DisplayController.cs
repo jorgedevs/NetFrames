@@ -25,6 +25,7 @@ public class DisplayController
 
     private AbsoluteLayout galleryLayout;
     private Picture picture;
+    private Label counter;
 
     public DisplayController(
         IPixelDisplay? display,
@@ -140,7 +141,7 @@ public class DisplayController
         }
     }
 
-    public void DisplayImage(byte[] jpgData)
+    public void DisplayImage(byte[] jpgData, int _counter)
     {
         var buffer = LoadJpeg(jpgData);
         var image = Image.LoadFromPixelData(buffer);
@@ -149,10 +150,21 @@ public class DisplayController
         {
             picture = new Picture(displayScreen.Width, displayScreen.Height, image);
             galleryLayout.Controls.Add(picture);
+
+            counter = new Label(0, 0, _counter.ToString().Length * font12x16.Width + 2, font12x16.Height)
+            {
+                Text = _counter.ToString(),
+                TextColor = Color.White,
+                BackgroundColor = Color.Black,
+                Font = font12x16,
+                HorizontalAlignment = HorizontalAlignment.Left
+            };
+            galleryLayout.Controls.Add(counter);
         }
         else
         {
             picture.Image = image;
+            counter.Text = _counter.ToString();
             displayScreen.Invalidate();
         }
     }
