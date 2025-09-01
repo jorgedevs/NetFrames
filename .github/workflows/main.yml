@@ -16,6 +16,9 @@ jobs:
       with:
         dotnet-version: '8.0.x'
 
+    - name: Set BASE_URL environment variable
+      run: echo "BASE_URL=${{ secrets.BASE_URL }}" >> $GITHUB_ENV
+
     - name: Build + Upload
       uses: WildernessLabs/meadow-cloud-package-upload@main
       with:
