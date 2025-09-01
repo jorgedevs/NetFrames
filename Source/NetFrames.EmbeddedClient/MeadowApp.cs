@@ -29,7 +29,7 @@ OTA instructions:
 //public class MeadowApp : ProjectLabCoreComputeApp
 public class MeadowApp : App<F7FeatherV2>
 {
-    public static double VERSION { get; set; } = 1.6;
+    public static double VERSION { get; set; } = 1.7;
 
     private MainController? mainController;
 
