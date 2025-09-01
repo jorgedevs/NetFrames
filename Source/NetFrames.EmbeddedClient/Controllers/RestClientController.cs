@@ -11,7 +11,7 @@ namespace NetFrames.EmbeddedClient.Controllers;
 public class RestClientController
 {
     // Base URL for the REST API (IP Address:Port)
-    string baseUrl = "http://192.168.1.1:5000";
+    string baseUrl = Environment.GetEnvironmentVariable("BASE_URL");
 
     public async Task<List<string>> GetImageFilenamesAsync()
     {
