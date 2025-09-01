@@ -151,7 +151,7 @@ public class DisplayController
             picture = new Picture(displayScreen.Width, displayScreen.Height, image);
             galleryLayout.Controls.Add(picture);
 
-            counter = new Label(0, 0, _counter.ToString().Length * font12x16.Width + 2, font12x16.Height)
+            counter = new Label(0, displayScreen.Height - font12x16.Height, _counter.ToString().Length * font12x16.Width + 2, font12x16.Height)
             {
                 Text = _counter.ToString(),
                 TextColor = Color.White,
@@ -165,6 +165,10 @@ public class DisplayController
         {
             picture.Image = image;
             counter.Text = _counter.ToString();
+            if (counter.Width < _counter.ToString().Length * font12x16.Width + 2)
+            {
+                counter.Width = _counter.ToString().Length * font12x16.Width + 2;
+            }
             displayScreen.Invalidate();
         }
     }
