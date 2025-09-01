@@ -1,0 +1,26 @@
+name: Upload/Publish MPAK
+
+on:
+  workflow_dispatch:
+
+jobs:
+
+  deploy:
+
+    runs-on: ubuntu-latest
+
+    steps:
+
+    - name: Build + Upload
+      uses: WildernessLabs/meadow-cloud-package-upload@main
+      with:
+        project_path: "Source/NetFrames.EmbeddedClient/"
+        organization_id: "d82f8ec7243a461581c2544070209fbd" # Required
+        api_key: ${{ secrets.API_KEY }} # Required
+        configs : '{"CONFIG_WIFI_SSID": "${{ secrets.CONFIG_WIFI_SSID }}", "CONFIG_WIFI_PASS": "${{ secrets.CONFIG_WIFI_PASS }}"}' # Optional
+        
+    - name: Publish
+      uses: WildernessLabs/meadow-cloud-package-publish@main
+      with:
+        api_key: ${{ secrets.API_KEY }} # Required
+        collection_id: "cb66c7ac57e14a85b5160f9b7c122203" # Required
