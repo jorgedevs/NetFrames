@@ -49,7 +49,62 @@ Feel free to 3D print this enclosure so you can place it on a desk or mount it o
 
 ## Build and Setup
 
-Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
+### Backend (Web API and Portal)
+
+If you have a raspberry pi, install dotnet and run both the NetFrames.Server and NetFrames.WebPortal app:
+
+#### NetFrames.Server
+
+Go to the NetFrames.Server folder and run the command `dotnet run`:
+
+```
+jorgedevs@Jorge-:~/Projects/NetFrames/Source/NetFrames.Server$ dotnet run
+Using launch settings from /home/jorgedevs/Projects/NetFrames/Source/NetFrames.Server/Properties/launchSettings.json...
+Building...
+info: Microsoft.Hosting.Lifetime[14]
+      Now listening on: http://0.0.0.0:5000
+info: Microsoft.Hosting.Lifetime[0]
+      Application started. Press Ctrl+C to shut down.
+info: Microsoft.Hosting.Lifetime[0]
+      Hosting environment: Development
+info: Microsoft.Hosting.Lifetime[0]
+      Content root path: /home/jorgedevs/Projects/NetFrames/Source/NetFrames.Server
+```
+
+Clients such as the Meadow Digital Frame will send request to this web API. You'll need to jot down this server's IP address, and send request to the port 5000.
+
+#### NetFrames.WebPortal
+
+To get the Web portal up and grow your photo gallery, on your terminal go to the NetFrames.WebPortal project and run the command `dotnet run`:
+
+```
+jorgedevs@Jorge:~/Projects/NetFrames/Source/NetFrames.WebPortal$ dotnet run
+Using launch settings from /home/jorgedevs/Projects/NetFrames/Source/NetFrames.WebPortal/Properties/launchSettings.json...
+Building...
+info: Microsoft.Hosting.Lifetime[14]
+      Now listening on: http://0.0.0.0:5150
+info: Microsoft.Hosting.Lifetime[0]
+      Application started. Press Ctrl+C to shut down.
+info: Microsoft.Hosting.Lifetime[0]
+      Hosting environment: Development
+info: Microsoft.Hosting.Lifetime[0]
+      Content root path: /home/jorgedevs/Projects/NetFrames/Source/NetFrames.WebPortal
+```
+
+Now you can open a browser anywhere and enter the server's IP address with the port 5150 and the NetFrames web portal will show up.
+
+#### NetFrames.EmbeddedClient
+
+Finally, to set up your Meadow-powered Digital Frame, you'll only need to set your WIFI credentials in the `wifi.config.yaml` file, and set the base URL in the `RestClientController` class:
+
+```
+public class RestClientController
+{
+    // Base URL for the REST API (IP Address:Port)
+    string baseUrl = "http://192.168.1.73:5150/";
+...
+
+```
 
 ## Roadmap
 
