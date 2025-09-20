@@ -100,6 +100,13 @@ public class MainController
                         allImages.Remove(imageShown);
                     }
 
+                    if (allImages.Count == 0)
+                    {
+                        Resolver.Log.Info("All images have been shown. Resetting shown images list.");
+                        imagesShown.Clear();
+                        allImages = task.Result;
+                    }
+
                     images = allImages;
                 }
                 else
