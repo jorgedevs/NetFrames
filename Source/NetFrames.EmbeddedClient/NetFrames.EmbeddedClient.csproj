@@ -16,9 +16,9 @@
     </ItemGroup>
     <ItemGroup>
         <!--<PackageReference Include="Meadow.ProjectLab" Version="2.4.0.4-beta" />-->
-        <PackageReference Include="Meadow.F7" Version="2.4.0.4-beta" />
-        <PackageReference Include="Meadow.Foundation.Displays.TftSpi" Version="2.4.0.4-beta" />
-        <PackageReference Include="Meadow.Foundation.Graphics.MicroLayout" Version="2.4.0.4-beta" />
+        <PackageReference Include="Meadow.F7" Version="2.4.0.5-beta" />
+        <PackageReference Include="Meadow.Foundation.Displays.TftSpi" Version="2.4.0.5-beta" />
+        <PackageReference Include="Meadow.Foundation.Graphics.MicroLayout" Version="2.4.0.5-beta" />
         <PackageReference Include="SimpleJpegDecoder" Version="0.*" />
     </ItemGroup>
     <ItemGroup>

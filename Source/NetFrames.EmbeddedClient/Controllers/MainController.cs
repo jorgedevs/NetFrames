@@ -12,7 +12,9 @@ public class MainController
 {
     private int counter;
     private Random random;
-    private List<string> imageFilenames;
+
+    private List<string> images = new List<string>();
+    private List<string> imagesShown = new List<string>();
 
     private INetFramesHardware hardware;
 
@@ -27,7 +29,7 @@ public class MainController
 
         counter = 0;
         random = new Random();
-        imageFilenames = new List<string>();
+        images = new List<string>();
 
         displayController = new DisplayController(
             this.hardware.Display,
@@ -89,8 +91,16 @@ public class MainController
             {
                 if (task.IsCompletedSuccessfully)
                 {
-                    imageFilenames = task.Result;
-                    Resolver.Log.Info($"Fetched {imageFilenames.Count} images.");
+                    var allImages = task.Result;
+
+                    Resolver.Log.Info($"Fetched {allImages.Count} images.");
+
+                    foreach (var imageShown in imagesShown)
+                    {
+                        allImages.Remove(imageShown);
+                    }
+
+                    images = allImages;
                 }
                 else
                 {
@@ -142,28 +152,30 @@ public class MainController
 
             if (hardware.NetworkAdapter.IsConnected)
             {
-                if (imageFilenames.Count == 0)
+                if (images.Count == 0)
                 {
                     Resolver.Log.Info("Network is connected. Fetching images...");
                     await GetImagesAsync();
                     await Task.Delay(TimeSpan.FromSeconds(5)); // Attempt to prevent ESP32 panic
                 }
 
-                if (imageFilenames.Count > 0)
+                if (images.Count > 0)
                 {
-                    var imageData = await restClientController.GetImageAsync(imageFilenames[random.Next(imageFilenames.Count)]);
+                    string imageId = images[random.Next(images.Count)];
+                    var imageData = await restClientController.GetImageAsync(imageId);
+
                     if (imageData.Length > 0)
                     {
                         counter++;
+                        imagesShown.Add(imageId);
                         displayController.DisplayImage(imageData, counter);
-                        Resolver.Log.Info($"Endpoint counter {counter}");
 
+                        Resolver.Log.Info($"Endpoint counter {counter}");
                         await Task.Delay(TimeSpan.FromMinutes(1));
                     }
                     else
                     {
                         Resolver.Log.Error("Failed to fetch image data.");
-
                         await Task.Delay(TimeSpan.FromSeconds(10));
                     }
                 }
@@ -171,7 +183,6 @@ public class MainController
             else
             {
                 Resolver.Log.Info("Network is not connected. Retrying...");
-
                 await Task.Delay(TimeSpan.FromSeconds(10));
             }
         }
