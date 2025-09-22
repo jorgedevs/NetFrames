@@ -13,6 +13,13 @@ public class RestClientController
     // Base URL for the REST API (IP Address:Port)
     string baseUrl = Environment.GetEnvironmentVariable("BASE_URL");
 
+    public RestClientController()
+    {
+        // Optionally, you can set the base URL from an environment variable
+        // baseUrl = Environment.GetEnvironmentVariable("BASE_URL") ?? baseUrl;
+        Resolver.Log.Info($"NETFRAMES: Using base URL: {baseUrl}");
+    }
+
     public async Task<List<string>> GetImageFilenamesAsync()
     {
         var imageFilenames = new List<string>();

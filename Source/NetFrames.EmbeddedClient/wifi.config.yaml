@@ -6,7 +6,7 @@
 Credentials:
 
     # WiFi SSID
-    Ssid: Ssid
+    Ssid: {{CONFIG_WIFI_SSID}}
 
     # WiFi Password
-    Password: Password
+    Password: {{CONFIG_WIFI_PASS}}
