@@ -27,6 +27,12 @@ jobs:
         api_key: ${{ secrets.API_KEY }} # Required
         configs : '{"CONFIG_WIFI_SSID": "${{ secrets.CONFIG_WIFI_SSID }}", "CONFIG_WIFI_PASS": "${{ secrets.CONFIG_WIFI_PASS }}"}' # Optional
         
+    - name: Upload MPAK as artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: mpak-package
+        path: Source/NetFrames.EmbeddedClient/bin/Release/*.mpak
+
     - name: Publish
       uses: WildernessLabs/meadow-cloud-package-publish@main
       with:
