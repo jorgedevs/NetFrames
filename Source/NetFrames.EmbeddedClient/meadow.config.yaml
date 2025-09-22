@@ -22,7 +22,7 @@ Coprocessor:
     AutomaticallyReconnect: true
 
     # Maximum number of retry attempts for connections etc. before an error code is returned.
-    MaximumRetryCount: 7
+    MaximumRetryCount: 99
 
 # Network configuration.
 Network:
