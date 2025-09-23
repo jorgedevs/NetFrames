@@ -17,10 +17,11 @@ jobs:
         dotnet-version: '8.0.x'
 
     - name: Build + Upload
-      uses: WildernessLabs/meadow-cloud-package-upload@main
+      uses: WildernessLabs/meadow-cloud-package-upload@delimiter
       with:
         project_path: "Source/NetFrames.EmbeddedClient/"
         organization_id: "d82f8ec7243a461581c2544070209fbd"
+        os_version: 2.5.1.2
         api_key: ${{ secrets.API_KEY }}
         configs : '{
             "CONFIG_WIFI_SSID": "${{ secrets.CONFIG_WIFI_SSID }}", 

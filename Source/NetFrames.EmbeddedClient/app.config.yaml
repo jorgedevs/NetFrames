@@ -3,6 +3,7 @@
 # http://developer.wildernesslabs.co/Meadow/Meadow.OS/Configuration/Application_Settings_Configuration/
 
 Settings:
+
     BASE_URL: {{BASE_URL}}
     #BASE_URL: http://192.168.50.181:5000
 
