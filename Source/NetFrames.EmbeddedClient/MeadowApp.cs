@@ -29,13 +29,15 @@ OTA instructions:
 //public class MeadowApp : ProjectLabCoreComputeApp
 public class MeadowApp : App<F7FeatherV2>
 {
-    public static double VERSION { get; set; } = 2.0;
+    public static double VERSION { get; set; } = 2.1;
 
     private MainController? mainController;
 
     public override Task Initialize()
     {
         Resolver.Log.Info("Initialize...");
+
+        Settings.TryGetValue("Settings.BASE_URL", out RestClientController.BASE_URL);
 
         //var hardware = new NetFramesProjectLabHardware(Hardware);
         var hardware = new NetFramesF7FeatherHardware(Device);

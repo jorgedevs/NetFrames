@@ -10,14 +10,12 @@ namespace NetFrames.EmbeddedClient.Controllers;
 
 public class RestClientController
 {
-    // Base URL for the REST API (IP Address:Port)
-    string baseUrl = Environment.GetEnvironmentVariable("BASE_URL");
+    // Base URL for the REST API
+    public static string BASE_URL = string.Empty;
 
     public RestClientController()
     {
-        // Optionally, you can set the base URL from an environment variable
-        // baseUrl = Environment.GetEnvironmentVariable("BASE_URL") ?? baseUrl;
-        Resolver.Log.Info($"NETFRAMES: Using base URL: {baseUrl}");
+        Resolver.Log.Info($"NETFRAMES: Using base URL: {BASE_URL}");
     }
 
     public async Task<List<string>> GetImageFilenamesAsync()
@@ -28,7 +26,7 @@ public class RestClientController
         {
             try
             {
-                var response = await client.GetAsync($"{baseUrl}/images/list");
+                var response = await client.GetAsync($"{BASE_URL}/images/list");
                 string json = await response.Content.ReadAsStringAsync();
                 var filenames = MicroJson.Deserialize<string[]>(json);
                 if (filenames != null)
@@ -51,7 +49,7 @@ public class RestClientController
         {
             try
             {
-                var response = await client.GetAsync($"{baseUrl}/images/{id}");
+                var response = await client.GetAsync($"{BASE_URL}/images/{id}");
                 if (response.IsSuccessStatusCode)
                 {
                     return await response.Content.ReadAsByteArrayAsync();

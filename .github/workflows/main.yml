@@ -16,16 +16,16 @@ jobs:
       with:
         dotnet-version: '8.0.x'
 
-    - name: Set BASE_URL environment variable
-      run: echo "BASE_URL=${{ secrets.BASE_URL }}" >> $GITHUB_ENV
-
     - name: Build + Upload
       uses: WildernessLabs/meadow-cloud-package-upload@main
       with:
         project_path: "Source/NetFrames.EmbeddedClient/"
-        organization_id: "d82f8ec7243a461581c2544070209fbd" # Required
-        api_key: ${{ secrets.API_KEY }} # Required
-        configs : '{"CONFIG_WIFI_SSID": "${{ secrets.CONFIG_WIFI_SSID }}", "CONFIG_WIFI_PASS": "${{ secrets.CONFIG_WIFI_PASS }}"}' # Optional
+        organization_id: "d82f8ec7243a461581c2544070209fbd"
+        api_key: ${{ secrets.API_KEY }}
+        configs : '{
+            "CONFIG_WIFI_SSID": "${{ secrets.CONFIG_WIFI_SSID }}", 
+            "CONFIG_WIFI_PASS": "${{ secrets.CONFIG_WIFI_PASS }}", 
+            "BASE_URL": "${{ secrets.BASE_URL }}"}'
         
     - name: Upload MPAK as artifact
       uses: actions/upload-artifact@v4
@@ -36,5 +36,5 @@ jobs:
     - name: Publish
       uses: WildernessLabs/meadow-cloud-package-publish@main
       with:
-        api_key: ${{ secrets.API_KEY }} # Required
-        collection_id: "cb66c7ac57e14a85b5160f9b7c122203" # Required
+        api_key: ${{ secrets.API_KEY }}
+        collection_id: "cb66c7ac57e14a85b5160f9b7c122203"
