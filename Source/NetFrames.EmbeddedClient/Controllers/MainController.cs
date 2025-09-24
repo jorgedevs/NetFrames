@@ -1,4 +1,5 @@
 ﻿using Meadow;
+using Meadow.Logging;
 using Meadow.Update;
 using NetFrames.EmbeddedClient.Contracts;
 using System;
@@ -26,6 +27,10 @@ public class MainController
     public Task Initialize(INetFramesHardware hardware)
     {
         this.hardware = hardware;
+
+        var cloudLogger = new CloudLogger();
+        Resolver.Log.AddProvider(cloudLogger);
+        Resolver.Services.Add(cloudLogger);
 
         counter = 0;
         random = new Random();

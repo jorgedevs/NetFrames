@@ -160,6 +160,7 @@ public class DisplayController
                 HorizontalAlignment = HorizontalAlignment.Left
             };
             galleryLayout.Controls.Add(counter);
+            counter.IsVisible = false;
         }
         else
         {
