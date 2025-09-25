@@ -1,6 +1,7 @@
 ﻿using Meadow;
 using Meadow.Logging;
 using Meadow.Update;
+using NetFrames.EmbeddedClient.Commands;
 using NetFrames.EmbeddedClient.Contracts;
 using System;
 using System.Collections.Generic;
@@ -50,6 +51,12 @@ public class MainController
         updateService.UpdateAvailable += OnUpdateAvailable;
         updateService.UpdateRetrieved += OnUpdateRetrieved;
         updateService.RetrieveProgress += OnRetrieveProgress;
+
+        Resolver.CommandService.Subscribe<ResetCommand>(command =>
+        {
+            Resolver.Log.Info($"Forcing reset");
+            Resolver.Device?.PlatformOS.Reset();
+        });
 
         var cloudService = Resolver.MeadowCloudService;
         cloudService.ConnectionStateChanged += OnCloudStateChanged;
