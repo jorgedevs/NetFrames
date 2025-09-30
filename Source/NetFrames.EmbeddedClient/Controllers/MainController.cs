@@ -13,6 +13,7 @@ namespace NetFrames.EmbeddedClient.Controllers;
 public class MainController
 {
     private int counter;
+    private bool isUpdating;
     private Random random;
 
     private List<string> images = new List<string>();
@@ -71,6 +72,7 @@ public class MainController
 
     private void OnUpdateAvailable(IUpdateService updateService, UpdateInfo info, CancellationTokenSource cancel)
     {
+        isUpdating = true;
         hardware?.RgbPwmLed?.StartBlink(Color.Magenta);
         displayController.ShowSplashScreen();
         displayController.UpdateStatus("Update available!");
@@ -163,7 +165,7 @@ public class MainController
 
     public async Task Run()
     {
-        while (true)
+        while (!isUpdating)
         {
             // Show a sample image for testing purposes
             //displayController.DisplaySampleImage();
