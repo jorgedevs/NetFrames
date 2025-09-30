@@ -43,13 +43,13 @@ public class RestClientController
         }
     }
 
-    public async Task<byte[]> GetImageAsync(string id)
+    public async Task<byte[]> GetImageAsync(string id, int? width, int? height)
     {
         using (HttpClient client = new HttpClient())
         {
             try
             {
-                var response = await client.GetAsync($"{BASE_URL}/images/{id}");
+                var response = await client.GetAsync($"{BASE_URL}/images/{id}?width={width}&height={height}");
                 if (response.IsSuccessStatusCode)
                 {
                     return await response.Content.ReadAsByteArrayAsync();

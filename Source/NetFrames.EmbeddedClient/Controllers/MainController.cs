@@ -183,7 +183,7 @@ public class MainController
                 if (images.Count > 0)
                 {
                     string imageId = images[random.Next(images.Count)];
-                    var imageData = await restClientController.GetImageAsync(imageId);
+                    var imageData = await restClientController.GetImageAsync(imageId, hardware!.Display!.Width, hardware!.Display!.Height);
 
                     if (imageData.Length > 0)
                     {
