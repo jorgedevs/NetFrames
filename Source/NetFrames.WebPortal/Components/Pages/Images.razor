@@ -19,7 +19,7 @@ else if (imageIds?.Any() == true)
         @foreach (var id in imageIds)
         {
             <div class="image-container">
-                <input type="checkbox" class="image-checkbox" />
+                @* <input type="checkbox" class="image-checkbox" /> *@
                 <img src="@($"{ApiConfig.BaseUrl}/images/{id}")"
                      class="grid-image"
                      @onclick="() => ShowModal(id)"
