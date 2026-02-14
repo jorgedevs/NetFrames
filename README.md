@@ -49,49 +49,81 @@ Feel free to 3D print this enclosure so you can place it on a desk or mount it o
 
 ## Build and Setup
 
-### Backend (Web API and Portal)
+Both the Server and WebPortal target **.NET 10**. Make sure you have the [.NET 10 SDK](https://dotnet.microsoft.com/download/dotnet/10.0) installed.
 
-If you have a raspberry pi, install dotnet and run both the NetFrames.Server and NetFrames.WebPortal app:
+### Configuration
 
-#### NetFrames.Server
+The WebPortal connects to the Server's API via the `ApiBaseUrl` setting in `Source/NetFrames.WebPortal/appsettings.json`:
 
-Go to the NetFrames.Server folder and run the command `dotnet run`:
-
-```
-jorgedevs@Jorge-:~/Projects/NetFrames/Source/NetFrames.Server$ dotnet run
-Using launch settings from /home/jorgedevs/Projects/NetFrames/Source/NetFrames.Server/Properties/launchSettings.json...
-Building...
-info: Microsoft.Hosting.Lifetime[14]
-      Now listening on: http://0.0.0.0:5000
-info: Microsoft.Hosting.Lifetime[0]
-      Application started. Press Ctrl+C to shut down.
-info: Microsoft.Hosting.Lifetime[0]
-      Hosting environment: Development
-info: Microsoft.Hosting.Lifetime[0]
-      Content root path: /home/jorgedevs/Projects/NetFrames/Source/NetFrames.Server
+```json
+{
+  "ApiBaseUrl": "http://localhost:5233"
+}
 ```
 
-Clients such as the Meadow Digital Frame will send request to this web API. You'll need to jot down this server's IP address, and send request to the port 5000.
+Update this value depending on where the Server is running (see scenarios below).
 
-#### NetFrames.WebPortal
+### Scenario 1: Running both locally (development)
 
-To get the Web portal up and grow your photo gallery, on your terminal go to the NetFrames.WebPortal project and run the command `dotnet run`:
+When running both projects on the same machine, the default launch profiles handle the ports:
 
-```
-jorgedevs@Jorge:~/Projects/NetFrames/Source/NetFrames.WebPortal$ dotnet run
-Using launch settings from /home/jorgedevs/Projects/NetFrames/Source/NetFrames.WebPortal/Properties/launchSettings.json...
-Building...
-info: Microsoft.Hosting.Lifetime[14]
-      Now listening on: http://0.0.0.0:5150
-info: Microsoft.Hosting.Lifetime[0]
-      Application started. Press Ctrl+C to shut down.
-info: Microsoft.Hosting.Lifetime[0]
-      Hosting environment: Development
-info: Microsoft.Hosting.Lifetime[0]
-      Content root path: /home/jorgedevs/Projects/NetFrames/Source/NetFrames.WebPortal
-```
+| Project | HTTP | HTTPS |
+|---------|------|-------|
+| NetFrames.Server | `http://localhost:5233` | `https://localhost:7044` |
+| NetFrames.WebPortal | `http://localhost:5150` | `https://localhost:7118` |
 
-Now you can open a browser anywhere and enter the server's IP address with the port 5150 and the NetFrames web portal will show up.
+These ports are configured in each project's `Properties/launchSettings.json`.
+
+1. Start the Server:
+   ```
+   cd Source/NetFrames.Server
+   dotnet run
+   ```
+
+2. In a separate terminal, start the WebPortal:
+   ```
+   cd Source/NetFrames.WebPortal
+   dotnet run
+   ```
+
+3. Make sure `ApiBaseUrl` is set to `http://localhost:5233` in `appsettings.json` (the default).
+
+4. Open `http://localhost:5150` in your browser.
+
+### Scenario 2: Server on a remote machine (e.g. Raspberry Pi)
+
+When running the Server on a separate machine (such as a Raspberry Pi), you need to configure the Server to listen on all network interfaces and point the WebPortal to the server's IP address.
+
+**On the remote machine (Server):**
+
+1. Update `Source/NetFrames.Server/Properties/launchSettings.json` to bind to all interfaces:
+   ```json
+   "applicationUrl": "http://0.0.0.0:5000"
+   ```
+   Or pass the URL directly:
+   ```
+   cd Source/NetFrames.Server
+   dotnet run --urls "http://0.0.0.0:5000"
+   ```
+
+2. Note the machine's IP address (e.g. `192.168.1.73`).
+
+**On your local machine (WebPortal):**
+
+1. Update `ApiBaseUrl` in `Source/NetFrames.WebPortal/appsettings.json` to point to the remote server:
+   ```json
+   {
+     "ApiBaseUrl": "http://192.168.1.73:5000"
+   }
+   ```
+
+2. Run the WebPortal:
+   ```
+   cd Source/NetFrames.WebPortal
+   dotnet run
+   ```
+
+3. Open `http://localhost:5150` in your browser.
 
 #### NetFrames.EmbeddedClient
 
