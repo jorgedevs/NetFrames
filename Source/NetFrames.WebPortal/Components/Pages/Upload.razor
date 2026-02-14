@@ -1,39 +1,91 @@
-﻿@page "/upload"
+@page "/upload"
 @using System.Net.Http.Headers
 @rendermode InteractiveServer
 @inject ApiConfig ApiConfig
 @inject HttpClient Http
 
-<h3>NetFrames - Settings</h3>
-<InputFile OnChange="OnInputFileChange" />
-<button class="btn btn-primary" @onclick="UploadImage" disabled="@(!isFileSelected)">Upload</button>
+<h3>Upload Image</h3>
+
+<div class="upload-zone @(isDragOver ? "drag-over" : "")"
+     @ondragenter="OnDragEnter"
+     @ondragover="OnDragOver"
+     @ondragleave="OnDragLeave"
+     @ondrop="OnDrop">
+
+    @if (previewUrl != null)
+    {
+        <img src="@previewUrl" class="upload-preview" alt="Preview" />
+        <p class="upload-filename">@selectedFile?.Name</p>
+    }
+    else
+    {
+        <i class="bi bi-cloud-arrow-up upload-icon"></i>
+        <p class="upload-text">Drag and drop an image here, or click to browse</p>
+    }
+
+    <InputFile OnChange="OnInputFileChange" accept="image/*" class="upload-input" />
+</div>
+
+<button class="btn btn-primary upload-btn" @onclick="UploadImage" disabled="@(!isFileSelected || isUploading)">
+    @if (isUploading)
+    {
+        <span class="spinner-border spinner-border-sm me-2" role="status"></span>
+        <span>Uploading...</span>
+    }
+    else
+    {
+        <i class="bi bi-upload me-2"></i>
+        <span>Upload</span>
+    }
+</button>
 
 @if (!string.IsNullOrEmpty(status))
 {
-    <p>@status</p>
+    <div class="alert @(isSuccess ? "alert-success" : "alert-danger") mt-3" role="alert">
+        <i class="bi @(isSuccess ? "bi-check-circle" : "bi-exclamation-triangle") me-2"></i>
+        @status
+    </div>
 }
 
 @code {
-    private string? message;
     private bool isFileSelected => selectedFile != null && fileData != null;
+    private bool isUploading;
+    private bool isSuccess;
+    private bool isDragOver;
     private IBrowserFile? selectedFile;
     private MemoryStream? fileData;
     private string? status;
+    private string? previewUrl;
 
-    private async Task CallHelloApi()
-    {
-        message = await Http.GetStringAsync($"{ApiConfig.BaseUrl}/hello");
-    }
+    private void OnDragEnter() => isDragOver = true;
+    private void OnDragOver() => isDragOver = true;
+    private void OnDragLeave() => isDragOver = false;
+    private void OnDrop() => isDragOver = false;
 
-    private async void OnInputFileChange(InputFileChangeEventArgs e)
+    private async Task OnInputFileChange(InputFileChangeEventArgs e)
     {
         selectedFile = e.File;
         status = null;
+        previewUrl = null;
 
-        // Immediately read the stream into memory
+        if (!selectedFile.ContentType.StartsWith("image/"))
+        {
+            status = "Please select a valid image file.";
+            isSuccess = false;
+            selectedFile = null;
+            return;
+        }
+
         fileData = new MemoryStream();
-        await selectedFile.OpenReadStream(maxAllowedSize: 1024 * 1024).CopyToAsync(fileData);
+        await selectedFile.OpenReadStream(maxAllowedSize: 10 * 1024 * 1024).CopyToAsync(fileData);
         fileData.Position = 0;
+
+        // Generate a data URL for preview
+        var base64 = Convert.ToBase64String(fileData.ToArray());
+        previewUrl = $"data:{selectedFile.ContentType};base64,{base64}";
+        fileData.Position = 0;
+
+        StateHasChanged();
     }
 
     private async Task UploadImage()
@@ -41,32 +93,43 @@
         if (selectedFile == null || fileData == null)
         {
             status = "No file selected.";
+            isSuccess = false;
             return;
         }
 
-        if (!selectedFile.ContentType.StartsWith("image/"))
-        {
-            status = "Please select a valid image file.";
-            return;
-        }
-
-        using var content = new MultipartFormDataContent();
-        var streamContent = new StreamContent(fileData);
-        streamContent.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue(selectedFile.ContentType);
-
-        content.Add(streamContent, "image", selectedFile.Name);
+        isUploading = true;
+        status = null;
 
         try
         {
+            using var content = new MultipartFormDataContent();
+            var streamContent = new StreamContent(fileData);
+            streamContent.Headers.ContentType = new MediaTypeHeaderValue(selectedFile.ContentType);
+            content.Add(streamContent, "image", selectedFile.Name);
+
             var response = await Http.PostAsync($"{ApiConfig.BaseUrl}/images/upload", content);
             if (response.IsSuccessStatusCode)
-                status = "Upload successful!";
+            {
+                status = "Image uploaded successfully!";
+                isSuccess = true;
+                selectedFile = null;
+                fileData = null;
+                previewUrl = null;
+            }
             else
+            {
                 status = $"Upload failed: {await response.Content.ReadAsStringAsync()}";
+                isSuccess = false;
+            }
         }
         catch (Exception ex)
         {
             status = $"Error: {ex.Message}";
+            isSuccess = false;
+        }
+        finally
+        {
+            isUploading = false;
         }
     }
 }
