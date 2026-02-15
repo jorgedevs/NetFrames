@@ -7,16 +7,12 @@ builder.Services.AddOpenApi();
 
 var app = builder.Build();
 
-app.Urls.Add("http://0.0.0.0:5000");
-
 if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
 }
 
 app.UseStaticFiles();
-
-app.UseHttpsRedirection();
 
 // In-memory image store (replace with persistent storage for production)
 var imageStore = new Dictionary<string, byte[]>();

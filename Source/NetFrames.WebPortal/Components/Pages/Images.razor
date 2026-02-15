@@ -1,4 +1,5 @@
-﻿@page "/"
+@page "/"
+@using System.Net.Http.Headers
 @rendermode InteractiveServer
 @inject ApiConfig ApiConfig
 @inject HttpClient Http
@@ -13,24 +14,51 @@
         <span class="visually-hidden">Loading...</span>
     </div>
 }
-else if (imageIds?.Any() == true)
+else
 {
     <div class="image-grid">
-        @foreach (var id in imageIds)
+        <div class="image-container upload-zone-grid @(isDragOver ? "drag-over" : "")"
+             @ondragenter="OnDragEnter"
+             @ondragover="OnDragOver"
+             @ondragleave="OnDragLeave"
+             @ondrop="OnDrop">
+
+            @if (isUploading)
+            {
+                <div class="spinner-border text-primary" role="status">
+                    <span class="visually-hidden">Uploading...</span>
+                </div>
+            }
+            else
+            {
+                <i class="bi bi-plus-lg upload-grid-icon"></i>
+                <span class="upload-grid-text">Add Photo</span>
+            }
+
+            <InputFile OnChange="OnInputFileChange" accept="image/*" class="upload-input" />
+        </div>
+
+        @if (imageIds?.Any() == true)
         {
-            <div class="image-container">
-                @* <input type="checkbox" class="image-checkbox" /> *@
-                <img src="@($"{ApiConfig.BaseUrl}/images/{id}")"
-                     class="grid-image"
-                     @onclick="() => ShowModal(id)"
-                     alt="Gallery image" />
-            </div>
+            @foreach (var id in imageIds)
+            {
+                <div class="image-container">
+                    <img src="@($"{ApiConfig.BaseUrl}/images/{id}")"
+                         class="grid-image"
+                         @onclick="() => ShowModal(id)"
+                         alt="Gallery image" />
+                </div>
+            }
         }
     </div>
 }
-else
+
+@if (!string.IsNullOrEmpty(uploadStatus))
 {
-    <p>No images found.</p>
+    <div class="toast-notification @(uploadSuccess ? "toast-success" : "toast-error")">
+        <i class="bi @(uploadSuccess ? "bi-check-circle" : "bi-exclamation-triangle") me-2"></i>
+        @uploadStatus
+    </div>
 }
 
 @if (showModal)
@@ -38,14 +66,14 @@ else
     <div class="modal-backdrop" @onclick="CloseModal">
         <div class="modal-content" @onclick:stopPropagation>
             <div>
-                <img 
+                <img
                     src="@($"{ApiConfig.BaseUrl}/images/{selectedId}")"
-                    class="modal-image" 
+                    class="modal-image"
                     alt="Large view" />
             </div>
 
             <div style="display: flex; align-items: center; margin-top: 10px; width:100%">
-                <p style="flex: 1; margin: 0;">image_2025_04_21.jpg</p>
+                <p style="flex: 1; margin: 0;">@selectedId</p>
                 <button class="trash-btn" @onclick="DeleteImage" title="Delete image" style="margin-left: auto;">
                     <i class="bi bi-trash"></i>
                 </button>
@@ -56,8 +84,12 @@ else
 
 @code {
     private bool isLoading = true;
+    private bool isUploading;
+    private bool uploadSuccess;
+    private bool isDragOver;
     private bool showModal = false;
     private string? selectedId;
+    private string? uploadStatus;
     private List<string>? imageIds;
 
     protected override async Task OnInitializedAsync()
@@ -71,6 +103,80 @@ else
         {
             isLoading = false;
         }
+    }
+
+    private void OnDragEnter() => isDragOver = true;
+    private void OnDragOver() => isDragOver = true;
+    private void OnDragLeave() => isDragOver = false;
+    private void OnDrop() => isDragOver = false;
+
+    private CancellationTokenSource? toastCts;
+
+    private async Task OnInputFileChange(InputFileChangeEventArgs e)
+    {
+        var file = e.File;
+        uploadStatus = null;
+
+        if (!file.ContentType.StartsWith("image/"))
+        {
+            uploadStatus = "Please select a valid image file.";
+            uploadSuccess = false;
+            _ = DismissToastAfterDelay();
+            return;
+        }
+
+        isUploading = true;
+        StateHasChanged();
+
+        try
+        {
+            using var fileData = new MemoryStream();
+            await file.OpenReadStream(maxAllowedSize: 10 * 1024 * 1024).CopyToAsync(fileData);
+            fileData.Position = 0;
+
+            using var content = new MultipartFormDataContent();
+            var streamContent = new StreamContent(fileData);
+            streamContent.Headers.ContentType = new MediaTypeHeaderValue(file.ContentType);
+            content.Add(streamContent, "image", file.Name);
+
+            var response = await Http.PostAsync($"{ApiConfig.BaseUrl}/images/upload", content);
+            if (response.IsSuccessStatusCode)
+            {
+                uploadStatus = "Image uploaded successfully!";
+                uploadSuccess = true;
+                imageIds = await Http.GetFromJsonAsync<List<string>>($"{ApiConfig.BaseUrl}/images/list");
+            }
+            else
+            {
+                uploadStatus = $"Upload failed: {await response.Content.ReadAsStringAsync()}";
+                uploadSuccess = false;
+            }
+        }
+        catch (Exception ex)
+        {
+            uploadStatus = $"Error: {ex.Message}";
+            uploadSuccess = false;
+        }
+        finally
+        {
+            isUploading = false;
+            _ = DismissToastAfterDelay();
+        }
+    }
+
+    private async Task DismissToastAfterDelay()
+    {
+        toastCts?.Cancel();
+        toastCts = new CancellationTokenSource();
+        var token = toastCts.Token;
+
+        try
+        {
+            await Task.Delay(4000, token);
+            uploadStatus = null;
+            StateHasChanged();
+        }
+        catch (TaskCanceledException) { }
     }
 
     private void ShowModal(string id)
@@ -90,10 +196,6 @@ else
             imageIds?.Remove(selectedId);
             showModal = false;
             StateHasChanged();
-        }
-        else
-        {
-            // Optionally show an error message
         }
     }
 
