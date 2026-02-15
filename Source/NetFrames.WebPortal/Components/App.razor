@@ -12,6 +12,31 @@
     <ImportMap />
     <link rel="icon" type="image/png" href="favicon.png" />
     <HeadOutlet />
+    <script>
+        (function() {
+            var theme = localStorage.getItem('theme') || 'light';
+            document.documentElement.setAttribute('data-theme', theme);
+        })();
+
+        function toggleTheme() {
+            var current = document.documentElement.getAttribute('data-theme');
+            var next = current === 'dark' ? 'light' : 'dark';
+            document.documentElement.setAttribute('data-theme', next);
+            localStorage.setItem('theme', next);
+            var icon = document.getElementById('theme-icon');
+            if (icon) {
+                icon.className = 'bi ' + (next === 'dark' ? 'bi-sun' : 'bi-moon');
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            var theme = localStorage.getItem('theme') || 'light';
+            var icon = document.getElementById('theme-icon');
+            if (icon) {
+                icon.className = 'bi ' + (theme === 'dark' ? 'bi-sun' : 'bi-moon');
+            }
+        });
+    </script>
 </head>
 
 <body>

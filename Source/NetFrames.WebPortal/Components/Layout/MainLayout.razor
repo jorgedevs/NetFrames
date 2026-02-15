@@ -1,15 +1,20 @@
-﻿@inherits LayoutComponentBase
+@inherits LayoutComponentBase
 
 <div class="page">
-    <div class="sidebar">
-        <NavMenu />
-    </div>
+    <header class="top-row px-4">
+        <div class="brand">
+            <img src="/images/netframes_logo.png" alt="Logo" style="height: 26px;" />
+            <a class="brand-name" href="">NETFRAMES</a>
+        </div>
+        <div class="top-row-right">
+            <a href="https://github.com/jorgedevs/NetFrames" target="_blank">About</a>
+            <button class="theme-toggle" onclick="toggleTheme()" title="Toggle theme">
+                <i id="theme-icon" class="bi bi-moon"></i>
+            </button>
+        </div>
+    </header>
 
     <main>
-        <div class="top-row px-4">
-            <a href="https://github.com/jorgedevs/NetFrames" target="_blank">About</a>
-        </div>
-
         <article class="content px-4">
             @Body
         </article>

@@ -6,7 +6,23 @@
 
 <PageTitle>NetFrames - Home</PageTitle>
 
-<h1>Photo Collection</h1>
+<div class="page-header">
+    <h1>Photo Collection</h1>
+    @if (selectedIds.Count > 0)
+    {
+        <button class="btn btn-outline-danger btn-sm delete-selected-btn" @onclick="DeleteSelected" disabled="@isDeleting">
+            @if (isDeleting)
+            {
+                <span class="spinner-border spinner-border-sm me-1" role="status"></span>
+            }
+            else
+            {
+                <i class="bi bi-trash me-1"></i>
+            }
+            Delete (@selectedIds.Count)
+        </button>
+    }
+</div>
 
 @if (isLoading)
 {
@@ -35,14 +51,21 @@ else
                 <span class="upload-grid-text">Add Photo</span>
             }
 
-            <InputFile OnChange="OnInputFileChange" accept="image/*" class="upload-input" />
+            <InputFile OnChange="OnInputFileChange" accept=".jpg,.jpeg" class="upload-input" />
         </div>
 
         @if (imageIds?.Any() == true)
         {
             @foreach (var id in imageIds)
             {
-                <div class="image-container">
+                var isSelected = selectedIds.Contains(id);
+                <div class="image-container @(isSelected ? "selected" : "")">
+                    <button class="select-btn @(isSelected ? "checked" : "")"
+                            @onclick="() => ToggleSelect(id)"
+                            @onclick:stopPropagation
+                            title="Select image">
+                        <i class="bi @(isSelected ? "bi-check-circle-fill" : "bi-check-circle")"></i>
+                    </button>
                     <img src="@($"{ApiConfig.BaseUrl}/images/{id}")"
                          class="grid-image"
                          @onclick="() => ShowModal(id)"
@@ -85,12 +108,14 @@ else
 @code {
     private bool isLoading = true;
     private bool isUploading;
+    private bool isDeleting;
     private bool uploadSuccess;
     private bool isDragOver;
     private bool showModal = false;
     private string? selectedId;
     private string? uploadStatus;
     private List<string>? imageIds;
+    private HashSet<string> selectedIds = new();
 
     protected override async Task OnInitializedAsync()
     {
@@ -103,6 +128,37 @@ else
         {
             isLoading = false;
         }
+    }
+
+    private void ToggleSelect(string id)
+    {
+        if (!selectedIds.Remove(id))
+            selectedIds.Add(id);
+    }
+
+    private async Task DeleteSelected()
+    {
+        if (selectedIds.Count == 0) return;
+
+        isDeleting = true;
+        var toDelete = selectedIds.ToList();
+        var deletedCount = 0;
+
+        foreach (var id in toDelete)
+        {
+            var response = await Http.DeleteAsync($"{ApiConfig.BaseUrl}/images/{id}");
+            if (response.IsSuccessStatusCode)
+            {
+                imageIds?.Remove(id);
+                selectedIds.Remove(id);
+                deletedCount++;
+            }
+        }
+
+        isDeleting = false;
+        uploadSuccess = true;
+        uploadStatus = $"{deletedCount} image{(deletedCount != 1 ? "s" : "")} deleted.";
+        _ = DismissToastAfterDelay();
     }
 
     private void OnDragEnter() => isDragOver = true;
@@ -194,6 +250,7 @@ else
         if (response.IsSuccessStatusCode)
         {
             imageIds?.Remove(selectedId);
+            selectedIds.Remove(selectedId);
             showModal = false;
             StateHasChanged();
         }

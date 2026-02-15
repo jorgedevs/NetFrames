@@ -1,5 +1,35 @@
+/* Theme variables */
+:root {
+    --bg: #ffffff;
+    --bg-secondary: #f7f7f7;
+    --bg-tertiary: #f8f9fa;
+    --text: #212529;
+    --text-muted: #6c757d;
+    --border: #d6d5d5;
+    --card-bg: #fff;
+    --upload-border: #b0b8c4;
+    --upload-hover-bg: #eef4fb;
+    --upload-drag-bg: #dde8f6;
+}
+
+[data-theme="dark"] {
+    --bg: #1a1a2e;
+    --bg-secondary: #16213e;
+    --bg-tertiary: #1f2937;
+    --text: #e2e8f0;
+    --text-muted: #94a3b8;
+    --border: #334155;
+    --card-bg: #1e293b;
+    --upload-border: #475569;
+    --upload-hover-bg: #1e3a5f;
+    --upload-drag-bg: #1e3a5f;
+}
+
 html, body {
     font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+    background-color: var(--bg);
+    color: var(--text);
+    transition: background-color 0.2s, color 0.2s;
 }
 
 a, .btn-link {
@@ -59,40 +89,59 @@ h1:focus {
     text-align: start;
 }
 
+/* Theme toggle */
+.theme-toggle {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 1.2rem;
+    color: var(--text-muted);
+    padding: 4px 8px;
+    border-radius: 6px;
+    transition: color 0.2s, background-color 0.2s;
+    display: flex;
+    align-items: center;
+}
+
+.theme-toggle:hover {
+    color: var(--text);
+    background-color: var(--bg-tertiary);
+}
+
 /* Upload zone (grid tile) */
 .upload-zone-grid {
     position: relative;
-    border: 2px dashed #b0b8c4;
+    border: 2px dashed var(--upload-border);
     border-radius: 8px;
-    display: flex;
+    display: flex !important;
     flex-direction: column;
     align-items: center;
     justify-content: center;
     height: 150px;
     cursor: pointer;
     transition: border-color 0.2s, background-color 0.2s;
-    background: #f8f9fa;
+    background: var(--bg-tertiary);
 }
 
 .upload-zone-grid:hover {
     border-color: #1b6ec2;
-    background: #eef4fb;
+    background: var(--upload-hover-bg);
 }
 
 .upload-zone-grid.drag-over {
     border-color: #1b6ec2;
-    background: #dde8f6;
+    background: var(--upload-drag-bg);
 }
 
 .upload-grid-icon {
-    font-size: 2rem;
-    color: #8a9bb0;
+    font-size: 1.5rem;
+    color: var(--text-muted);
 }
 
 .upload-grid-text {
-    color: #6c757d;
-    font-size: 0.85rem;
-    margin-top: 4px;
+    color: var(--text-muted);
+    font-size: 0.8rem;
+    margin-top: 2px;
 }
 
 .upload-input {
@@ -125,6 +174,18 @@ h1:focus {
     background: #f8d7da;
     color: #58151c;
     border: 1px solid #f1aeb5;
+}
+
+[data-theme="dark"] .toast-success {
+    background: #0a3622;
+    color: #d1e7dd;
+    border-color: #1a5c3a;
+}
+
+[data-theme="dark"] .toast-error {
+    background: #58151c;
+    color: #f8d7da;
+    border-color: #842029;
 }
 
 @keyframes toast-in {
@@ -171,7 +232,8 @@ h1:focus {
     display: grid;
     grid-template-rows: auto auto;
     position: relative;
-    background: #fff;
+    background: var(--card-bg);
+    color: var(--text);
     padding: 16px;
     border-radius: 12px;
     box-shadow: 0 8px 32px rgba(0,0,0,0.25);
@@ -195,8 +257,24 @@ h1:focus {
     background: transparent;
     border: none;
     font-size: 2rem;
-    color: #333;
+    color: var(--text);
     cursor: pointer;
+}
+
+/* Page header */
+.page-header {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.page-header h1 {
+    margin: 0;
+}
+
+.delete-selected-btn {
+    white-space: nowrap;
+    margin-left: auto;
 }
 
 .image-container {
@@ -204,17 +282,37 @@ h1:focus {
     display: inline-block;
 }
 
-.image-checkbox {
+/* Select button (Google Photos style) */
+.select-btn {
     position: absolute;
-    top: 8px;
-    right: 8px;
+    top: 6px;
+    left: 6px;
     z-index: 2;
-    /* Optional styling for visibility */
-    background: rgba(0,0,255,0.1);
-    border-radius: 4px;
-    width: 20px;
-    height: 20px;
-    opacity: 0.5;
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 0;
+    line-height: 1;
+    font-size: 1.35rem;
+    color: rgba(255,255,255,0.85);
+    opacity: 0;
+    transition: opacity 0.15s;
+    filter: drop-shadow(0 1px 2px rgba(0,0,0,0.5));
+}
+
+.image-container:hover .select-btn,
+.select-btn.checked {
+    opacity: 1;
+}
+
+.select-btn.checked {
+    color: #1b6ec2;
+    filter: drop-shadow(0 1px 2px rgba(0,0,0,0.2));
+}
+
+.image-container.selected .grid-image {
+    outline: 3px solid #1b6ec2;
+    outline-offset: -3px;
 }
 
 .grid-image {
@@ -227,7 +325,7 @@ h1:focus {
 
 .trash-btn {
     top: 8px;
-    right: 48px; /* space to the left of the close button */
+    right: 48px;
     background: transparent;
     border: none;
     font-size: 2rem;
