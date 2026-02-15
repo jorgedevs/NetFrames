@@ -114,7 +114,7 @@ app.MapPost("/images/upload", async (HttpRequest request) =>
         return Results.BadRequest("No image uploaded.");
 
     var id = Guid.NewGuid().ToString();
-    var fileName = $"{id}{Path.GetExtension(file.FileName)}";
+    var fileName = $"{id}.jpg";
     var filePath = Path.Combine(imagesPath, fileName);
 
     await using (var stream = File.Create(filePath))
@@ -122,7 +122,7 @@ app.MapPost("/images/upload", async (HttpRequest request) =>
         await file.CopyToAsync(stream);
     }
 
-    return Results.Ok(new { id = Path.GetFileNameWithoutExtension(fileName), fileName });
+    return Results.Ok(new { id, fileName });
 })
 .WithName("UploadImage");
 
