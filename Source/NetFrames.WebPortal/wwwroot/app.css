@@ -358,6 +358,14 @@ h1:focus {
     opacity: 0.4;
 }
 
+.modal-metadata {
+    display: flex;
+    gap: 16px;
+    margin-top: 10px;
+    font-size: 0.85rem;
+    color: var(--text-muted);
+}
+
 .visibility-btn {
     background: transparent;
     border: none;

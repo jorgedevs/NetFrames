@@ -101,8 +101,16 @@ else
                     alt="Large view" />
             </div>
 
+            @if (imageMetadata != null)
+            {
+                <div class="modal-metadata">
+                    <span>@($"{imageMetadata.Width} x {imageMetadata.Height}")</span>
+                    <span>@imageMetadata.UploadedAt.ToLocalTime().ToString("MMM d, yyyy h:mm tt")</span>
+                </div>
+            }
+
             <div style="display: flex; align-items: center; margin-top: 10px; width:100%">
-                <p style="flex: 1; margin: 0;">@selectedId</p>
+                <p style="flex: 1; margin: 0; font-size: 0.8rem; color: var(--text-muted);">@(selectedId)@(imageMetadata?.Extension)</p>
                 <button class="visibility-btn" @onclick="ToggleVisibility" title="@(IsSelectedEnabled() ? "Disable for clients" : "Enable for clients")">
                     <i class="bi @(IsSelectedEnabled() ? "bi-eye" : "bi-eye-slash")"></i>
                 </button>
@@ -124,9 +132,11 @@ else
     private string? selectedId;
     private string? uploadStatus;
     private List<ImageInfo>? images;
+    private ImageMetadata? imageMetadata;
     private HashSet<string> selectedIds = new();
 
     private record ImageInfo(string Id, bool Enabled);
+    private record ImageMetadata(string Extension, DateTime UploadedAt, int Width, int Height);
 
     protected override async Task OnInitializedAsync()
     {
@@ -299,10 +309,17 @@ else
         catch (TaskCanceledException) { }
     }
 
-    private void ShowModal(string id)
+    private async Task ShowModal(string id)
     {
         selectedId = id;
+        imageMetadata = null;
         showModal = true;
+        try
+        {
+            imageMetadata = await Http.GetFromJsonAsync<ImageMetadata>($"{ApiConfig.BaseUrl}/images/{id}/info");
+        }
+        catch { }
+        StateHasChanged();
     }
 
     private async Task DeleteImage()

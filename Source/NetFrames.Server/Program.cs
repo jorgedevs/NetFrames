@@ -81,6 +81,26 @@ app.MapPost("/images/{id}/toggle", (string id) =>
     return Results.Ok(new { id, enabled });
 });
 
+// Get image metadata
+app.MapGet("/images/{id}/info", async (string id) =>
+{
+    var filePath = Path.Combine(imagesPath, $"{id}.jpg");
+    if (!File.Exists(filePath))
+        return Results.NotFound();
+
+    var fileInfo = new FileInfo(filePath);
+    using var image = await Image.LoadAsync(filePath);
+
+    return Results.Ok(new
+    {
+        id,
+        extension = ".jpg",
+        uploadedAt = fileInfo.CreationTimeUtc,
+        width = image.Width,
+        height = image.Height
+    });
+});
+
 // Get image endpoint (serve from disk)
 app.MapGet("/images/{id}", async (string id, int? width, int? height) =>
 {
