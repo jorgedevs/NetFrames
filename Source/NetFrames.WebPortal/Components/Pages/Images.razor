@@ -10,6 +10,12 @@
     <h1>Photo Collection</h1>
     @if (selectedIds.Count > 0)
     {
+        @if (GetVisibilityAction() is string action)
+        {
+            <button class="btn btn-outline-secondary btn-sm toggle-selected-btn" @onclick="ToggleSelectedVisibility" title="@action selected images">
+                <i class="bi @(action == "Hide" ? "bi-eye-slash" : "bi-eye") me-1"></i> @action (@selectedIds.Count)
+            </button>
+        }
         <button class="btn btn-outline-danger btn-sm delete-selected-btn" @onclick="DeleteSelected" disabled="@isDeleting">
             @if (isDeleting)
             {
@@ -54,21 +60,21 @@ else
             <InputFile OnChange="OnInputFileChange" accept=".jpg,.jpeg" class="upload-input" />
         </div>
 
-        @if (imageIds?.Any() == true)
+        @if (images?.Any() == true)
         {
-            @foreach (var id in imageIds)
+            @foreach (var img in images)
             {
-                var isSelected = selectedIds.Contains(id);
-                <div class="image-container @(isSelected ? "selected" : "")">
+                var isSelected = selectedIds.Contains(img.Id);
+                <div class="image-container @(isSelected ? "selected" : "") @(!img.Enabled ? "disabled" : "")">
                     <button class="select-btn @(isSelected ? "checked" : "")"
-                            @onclick="() => ToggleSelect(id)"
+                            @onclick="() => ToggleSelect(img.Id)"
                             @onclick:stopPropagation
                             title="Select image">
                         <i class="bi @(isSelected ? "bi-check-circle-fill" : "bi-check-circle")"></i>
                     </button>
-                    <img src="@($"{ApiConfig.BaseUrl}/images/{id}")"
+                    <img src="@($"{ApiConfig.BaseUrl}/images/{img.Id}")"
                          class="grid-image"
-                         @onclick="() => ShowModal(id)"
+                         @onclick="() => ShowModal(img.Id)"
                          alt="Gallery image" />
                 </div>
             }
@@ -97,7 +103,10 @@ else
 
             <div style="display: flex; align-items: center; margin-top: 10px; width:100%">
                 <p style="flex: 1; margin: 0;">@selectedId</p>
-                <button class="trash-btn" @onclick="DeleteImage" title="Delete image" style="margin-left: auto;">
+                <button class="visibility-btn" @onclick="ToggleVisibility" title="@(IsSelectedEnabled() ? "Disable for clients" : "Enable for clients")">
+                    <i class="bi @(IsSelectedEnabled() ? "bi-eye" : "bi-eye-slash")"></i>
+                </button>
+                <button class="trash-btn" @onclick="DeleteImage" title="Delete image" style="margin-left: 8px;">
                     <i class="bi bi-trash"></i>
                 </button>
             </div>
@@ -114,20 +123,75 @@ else
     private bool showModal = false;
     private string? selectedId;
     private string? uploadStatus;
-    private List<string>? imageIds;
+    private List<ImageInfo>? images;
     private HashSet<string> selectedIds = new();
+
+    private record ImageInfo(string Id, bool Enabled);
 
     protected override async Task OnInitializedAsync()
     {
         isLoading = true;
         try
         {
-            imageIds = await Http.GetFromJsonAsync<List<string>>($"{ApiConfig.BaseUrl}/images/list");
+            images = await Http.GetFromJsonAsync<List<ImageInfo>>($"{ApiConfig.BaseUrl}/images/list/all");
         }
         finally
         {
             isLoading = false;
         }
+    }
+
+    private bool IsSelectedEnabled()
+    {
+        return images?.FirstOrDefault(i => i.Id == selectedId)?.Enabled ?? true;
+    }
+
+    private string? GetVisibilityAction()
+    {
+        if (images == null || selectedIds.Count == 0) return null;
+        var selected = images.Where(i => selectedIds.Contains(i.Id)).ToList();
+        bool hasEnabled = selected.Any(i => i.Enabled);
+        bool hasDisabled = selected.Any(i => !i.Enabled);
+        if (hasEnabled && hasDisabled) return null;
+        return hasEnabled ? "Hide" : "Show";
+    }
+
+    private async Task ToggleVisibility()
+    {
+        if (selectedId is null) return;
+
+        var response = await Http.PostAsync($"{ApiConfig.BaseUrl}/images/{selectedId}/toggle", null);
+        if (response.IsSuccessStatusCode)
+        {
+            var result = await response.Content.ReadFromJsonAsync<ImageInfo>();
+            if (result != null && images != null)
+            {
+                var index = images.FindIndex(i => i.Id == result.Id);
+                if (index >= 0)
+                    images[index] = result;
+            }
+            StateHasChanged();
+        }
+    }
+
+    private async Task ToggleSelectedVisibility()
+    {
+        foreach (var id in selectedIds.ToList())
+        {
+            var response = await Http.PostAsync($"{ApiConfig.BaseUrl}/images/{id}/toggle", null);
+            if (response.IsSuccessStatusCode)
+            {
+                var result = await response.Content.ReadFromJsonAsync<ImageInfo>();
+                if (result != null && images != null)
+                {
+                    var index = images.FindIndex(i => i.Id == result.Id);
+                    if (index >= 0)
+                        images[index] = result;
+                }
+            }
+        }
+        selectedIds.Clear();
+        StateHasChanged();
     }
 
     private void ToggleSelect(string id)
@@ -149,7 +213,7 @@ else
             var response = await Http.DeleteAsync($"{ApiConfig.BaseUrl}/images/{id}");
             if (response.IsSuccessStatusCode)
             {
-                imageIds?.Remove(id);
+                images?.RemoveAll(i => i.Id == id);
                 selectedIds.Remove(id);
                 deletedCount++;
             }
@@ -200,7 +264,7 @@ else
             {
                 uploadStatus = "Image uploaded successfully!";
                 uploadSuccess = true;
-                imageIds = await Http.GetFromJsonAsync<List<string>>($"{ApiConfig.BaseUrl}/images/list");
+                images = await Http.GetFromJsonAsync<List<ImageInfo>>($"{ApiConfig.BaseUrl}/images/list/all");
             }
             else
             {
@@ -249,7 +313,7 @@ else
         var response = await Http.DeleteAsync($"{ApiConfig.BaseUrl}/images/{selectedId}");
         if (response.IsSuccessStatusCode)
         {
-            imageIds?.Remove(selectedId);
+            images?.RemoveAll(i => i.Id == selectedId);
             selectedIds.Remove(selectedId);
             showModal = false;
             StateHasChanged();

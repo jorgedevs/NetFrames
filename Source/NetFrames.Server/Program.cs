@@ -1,3 +1,4 @@
+using System.Text.Json;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Processing;
 
@@ -20,20 +21,64 @@ var imageStore = new Dictionary<string, byte[]>();
 var imagesPath = Path.Combine(app.Environment.ContentRootPath, "wwwroot", "images");
 Directory.CreateDirectory(imagesPath);
 
+// Disabled images tracking
+var disabledPath = Path.Combine(imagesPath, "disabled.json");
+var disabledIds = new HashSet<string>();
+if (File.Exists(disabledPath))
+{
+    disabledIds = JsonSerializer.Deserialize<HashSet<string>>(File.ReadAllText(disabledPath)) ?? new();
+}
+void SaveDisabled() => File.WriteAllText(disabledPath, JsonSerializer.Serialize(disabledIds));
+
 // String simple endpoint
 app.MapGet("/hello", () =>
 {
     return "Hello from NetFrames API!";
 });
 
-// Return all image IDs in the store
+// Return enabled image IDs (for embedded client)
 app.MapGet("/images/list", () =>
 {
     var files = Directory.GetFiles(imagesPath, "*.jpg")
         .Select(f => Path.GetFileNameWithoutExtension(f))
+        .Where(id => !disabledIds.Contains(id))
         .ToArray();
 
     return Results.Ok(files);
+});
+
+// Return all images with enabled/disabled status (for WebPortal)
+app.MapGet("/images/list/all", () =>
+{
+    var files = Directory.GetFiles(imagesPath, "*.jpg")
+        .Select(f => Path.GetFileNameWithoutExtension(f))
+        .Select(id => new { id, enabled = !disabledIds.Contains(id) })
+        .ToArray();
+
+    return Results.Ok(files);
+});
+
+// Toggle image visibility
+app.MapPost("/images/{id}/toggle", (string id) =>
+{
+    var filePath = Path.Combine(imagesPath, $"{id}.jpg");
+    if (!File.Exists(filePath))
+        return Results.NotFound();
+
+    bool enabled;
+    if (disabledIds.Contains(id))
+    {
+        disabledIds.Remove(id);
+        enabled = true;
+    }
+    else
+    {
+        disabledIds.Add(id);
+        enabled = false;
+    }
+    SaveDisabled();
+
+    return Results.Ok(new { id, enabled });
 });
 
 // Get image endpoint (serve from disk)
@@ -136,6 +181,7 @@ app.MapDelete("/images/{id}", (string id) =>
     }
 
     File.Delete(filePath);
+    if (disabledIds.Remove(id)) SaveDisabled();
 
     return Results.Ok(new { message = $"Image {id} deleted." });
 });
