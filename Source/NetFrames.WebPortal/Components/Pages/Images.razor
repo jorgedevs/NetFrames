@@ -90,6 +90,20 @@ else
     </div>
 }
 
+@if (showConfirmDelete)
+{
+    <div class="modal-backdrop" @onclick="() => showConfirmDelete = false">
+        <div class="confirm-dialog" @onclick:stopPropagation>
+            <h5>Confirm Deletion</h5>
+            <p>Are you sure you want to delete selected photo(s)?</p>
+            <div class="confirm-dialog-actions">
+                <button class="btn btn-sm btn-outline-secondary" @onclick="() => showConfirmDelete = false">Cancel</button>
+                <button class="btn btn-sm btn-danger" @onclick="OnConfirmDelete">Delete</button>
+            </div>
+        </div>
+    </div>
+}
+
 @if (showModal)
 {
     <div class="modal-backdrop" @onclick="CloseModal">
@@ -129,6 +143,9 @@ else
     private bool uploadSuccess;
     private bool isDragOver;
     private bool showModal = false;
+    private bool showConfirmDelete = false;
+    private Func<Task>? confirmDeleteAction;
+    private int confirmDeleteCount;
     private string? selectedId;
     private string? uploadStatus;
     private List<ImageInfo>? images;
@@ -210,10 +227,16 @@ else
             selectedIds.Add(id);
     }
 
-    private async Task DeleteSelected()
+    private void DeleteSelected()
     {
         if (selectedIds.Count == 0) return;
+        confirmDeleteCount = selectedIds.Count;
+        confirmDeleteAction = PerformDeleteSelected;
+        showConfirmDelete = true;
+    }
 
+    private async Task PerformDeleteSelected()
+    {
         isDeleting = true;
         var toDelete = selectedIds.ToList();
         var deletedCount = 0;
@@ -322,11 +345,16 @@ else
         StateHasChanged();
     }
 
-    private async Task DeleteImage()
+    private void DeleteImage()
     {
-        if (selectedId is null)
-            return;
+        if (selectedId is null) return;
+        confirmDeleteCount = 1;
+        confirmDeleteAction = PerformDeleteImage;
+        showConfirmDelete = true;
+    }
 
+    private async Task PerformDeleteImage()
+    {
         var response = await Http.DeleteAsync($"{ApiConfig.BaseUrl}/images/{selectedId}");
         if (response.IsSuccessStatusCode)
         {
@@ -335,6 +363,13 @@ else
             showModal = false;
             StateHasChanged();
         }
+    }
+
+    private async Task OnConfirmDelete()
+    {
+        showConfirmDelete = false;
+        if (confirmDeleteAction != null)
+            await confirmDeleteAction();
     }
 
     private void CloseModal()
