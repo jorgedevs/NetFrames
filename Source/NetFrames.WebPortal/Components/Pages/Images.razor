@@ -10,8 +10,14 @@
     <h1>Photo Collection</h1>
     @if (selectedIds.Count > 0)
     {
-        <button class="clear-selection-btn" @onclick="() => selectedIds.Clear()" title="Clear selection"><i class="bi bi-x"></i></button>
         <span class="selected-count-label">@selectedIds.Count Selected</span>
+        <button class="btn btn-outline-secondary btn-sm" @onclick="() => selectedIds.Clear()">Clear Selection</button>
+        @if (selectedIds.Count < FilteredImages.Count())
+        {
+            <button class="btn btn-outline-secondary btn-sm select-all-btn" @onclick="SelectAll" title="Select all visible images">
+                Select All
+            </button>
+        }
         @if (GetVisibilityAction() is string action)
         {
             <button class="btn btn-outline-secondary btn-sm toggle-selected-btn" @onclick="ToggleSelectedVisibility" title="@action selected images">
@@ -29,6 +35,18 @@
             }
             Delete
         </button>
+    }
+</div>
+
+<div class="filter-bar">
+    <div class="filter-pills">
+        <button class="filter-pill @(activeFilter == "All" ? "active" : "")" @onclick='() => SetFilter("All")'>All</button>
+        <button class="filter-pill @(activeFilter == "Enabled" ? "active" : "")" @onclick='() => SetFilter("Enabled")'>Enabled</button>
+        <button class="filter-pill @(activeFilter == "Disabled" ? "active" : "")" @onclick='() => SetFilter("Disabled")'>Disabled</button>
+    </div>
+    @if (images != null)
+    {
+        <span class="image-count-label">@images.Count photo@(images.Count != 1 ? "s" : "") · @images.Count(i => i.Enabled) enabled</span>
     }
 </div>
 
@@ -62,9 +80,9 @@ else
             <InputFile OnChange="OnInputFileChange" accept=".jpg,.jpeg" class="upload-input" />
         </div>
 
-        @if (images?.Any() == true)
+        @if (FilteredImages.Any())
         {
-            @foreach (var img in images)
+            @foreach (var img in FilteredImages)
             {
                 var isSelected = selectedIds.Contains(img.Id);
                 <div class="image-container @(isSelected ? "selected" : "") @(!img.Enabled ? "disabled" : "")">
@@ -154,8 +172,28 @@ else
     private ImageMetadata? imageMetadata;
     private HashSet<string> selectedIds = new();
 
+    private string activeFilter = "All";
     private record ImageInfo(string Id, bool Enabled);
     private record ImageMetadata(string Extension, DateTime UploadedAt, int Width, int Height);
+
+    private IEnumerable<ImageInfo> FilteredImages => activeFilter switch
+    {
+        "Enabled" => images?.Where(i => i.Enabled) ?? Enumerable.Empty<ImageInfo>(),
+        "Disabled" => images?.Where(i => !i.Enabled) ?? Enumerable.Empty<ImageInfo>(),
+        _ => images ?? Enumerable.Empty<ImageInfo>()
+    };
+
+    private void SetFilter(string filter)
+    {
+        activeFilter = filter;
+        selectedIds.Clear();
+    }
+
+    private void SelectAll()
+    {
+        foreach (var img in FilteredImages)
+            selectedIds.Add(img.Id);
+    }
 
     protected override async Task OnInitializedAsync()
     {

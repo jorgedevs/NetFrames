@@ -281,6 +281,49 @@ h1:focus {
     margin-right: auto;
 }
 
+.select-all-btn {
+    white-space: nowrap;
+}
+
+.filter-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-top: 10px;
+    margin-bottom: 4px;
+}
+
+.filter-pills {
+    display: flex;
+    gap: 6px;
+}
+
+.filter-pill {
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--text-muted);
+    border-radius: 20px;
+    padding: 3px 14px;
+    font-size: 0.85rem;
+    cursor: pointer;
+}
+
+.filter-pill.active {
+    background: var(--text);
+    color: var(--bg);
+    border-color: var(--text);
+}
+
+.filter-pill:hover:not(.active) {
+    border-color: var(--text-muted);
+    color: var(--text);
+}
+
+.image-count-label {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+}
+
 .clear-selection-btn {
     background: transparent;
     border: none;
