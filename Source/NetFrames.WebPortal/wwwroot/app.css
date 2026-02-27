@@ -29,8 +29,7 @@ html, body {
     font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
     background-color: var(--bg);
     color: var(--text);
-    transition: background-color 0.2s, color 0.2s;
-}
+    }
 
 a, .btn-link {
     color: #006bb7;
@@ -98,7 +97,6 @@ h1:focus {
     color: var(--text-muted);
     padding: 4px 8px;
     border-radius: 6px;
-    transition: color 0.2s, background-color 0.2s;
     display: flex;
     align-items: center;
 }
@@ -119,8 +117,7 @@ h1:focus {
     justify-content: center;
     height: 150px;
     cursor: pointer;
-    transition: border-color 0.2s, background-color 0.2s;
-    background: var(--bg-tertiary);
+        background: var(--bg-tertiary);
 }
 
 .upload-zone-grid:hover {
@@ -369,7 +366,6 @@ h1:focus {
     color: #b32121;
     cursor: pointer;
     z-index: 2;
-    transition: color 0.2s;
 }
 
 .trash-btn:hover {
@@ -421,7 +417,6 @@ h1:focus {
     font-size: 2rem;
     color: var(--text-muted);
     cursor: pointer;
-    transition: color 0.2s;
 }
 
 .visibility-btn:hover {
