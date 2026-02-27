@@ -10,10 +10,12 @@
     <h1>Photo Collection</h1>
     @if (selectedIds.Count > 0)
     {
+        <button class="clear-selection-btn" @onclick="() => selectedIds.Clear()" title="Clear selection"><i class="bi bi-x"></i></button>
+        <span class="selected-count-label">@selectedIds.Count Selected</span>
         @if (GetVisibilityAction() is string action)
         {
             <button class="btn btn-outline-secondary btn-sm toggle-selected-btn" @onclick="ToggleSelectedVisibility" title="@action selected images">
-                <i class="bi @(action == "Hide" ? "bi-eye-slash" : "bi-eye") me-1"></i> @action (@selectedIds.Count)
+                <i class="bi @(action == "Hide" ? "bi-eye-slash" : "bi-eye") me-1"></i> @action
             </button>
         }
         <button class="btn btn-outline-danger btn-sm delete-selected-btn" @onclick="DeleteSelected" disabled="@isDeleting">
@@ -25,7 +27,7 @@
             {
                 <i class="bi bi-trash me-1"></i>
             }
-            Delete (@selectedIds.Count)
+            Delete
         </button>
     }
 </div>
@@ -307,7 +309,15 @@ else
         }
         catch (Exception ex)
         {
-            uploadStatus = $"Error: {ex.Message}";
+            if (ex.Message.Contains("exceeds the maximum"))
+            {
+                var fileSizeMb = (file.Size / (1024.0 * 1024.0)).ToString("F1");
+                uploadStatus = $"File size ({fileSizeMb} MB) exceeds the maximum of 10 MB.";
+            }
+            else
+            {
+                uploadStatus = $"Error: {ex.Message}";
+            }
             uploadSuccess = false;
         }
         finally
