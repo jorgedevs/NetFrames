@@ -14,15 +14,15 @@ public class MainController
 {
     private int counter;
     private bool isUpdating;
-    private Random random;
+    private Random random = null!;
 
     private List<string> images = new List<string>();
     private List<string> imagesShown = new List<string>();
 
-    private INetFramesHardware hardware;
+    private INetFramesHardware hardware = null!;
 
-    private DisplayController displayController;
-    private RestClientController restClientController;
+    private DisplayController displayController = null!;
+    private RestClientController restClientController = null!;
 
     public MainController() { }
 

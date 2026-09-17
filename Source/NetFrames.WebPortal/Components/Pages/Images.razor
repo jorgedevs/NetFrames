@@ -403,6 +403,8 @@ else
 
     private async Task PerformDeleteImage()
     {
+        if (selectedId is null) return;
+
         var response = await Http.DeleteAsync($"{ApiConfig.BaseUrl}/images/{selectedId}");
         if (response.IsSuccessStatusCode)
         {

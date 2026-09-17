@@ -17,20 +17,23 @@ public class DisplayController
     private readonly Font12x16 font12x16 = new Font12x16();
     private readonly DisplayScreen displayScreen;
 
-    private AbsoluteLayout splashLayout;
-    private ProgressBar progressBar;
-    private Label progressValue;
-    private Label version;
-    private Label status;
+    private AbsoluteLayout splashLayout = null!;
+    private ProgressBar progressBar = null!;
+    private Label progressValue = null!;
+    private Label version = null!;
+    private Label status = null!;
 
-    private AbsoluteLayout galleryLayout;
-    private Picture picture;
-    private Label counter;
+    private AbsoluteLayout galleryLayout = null!;
+    private Picture picture = null!;
+    private Label counter = null!;
 
     public DisplayController(
         IPixelDisplay? display,
         RotationType displayRotation)
     {
+        if (display is null)
+            throw new ArgumentNullException(nameof(display), "A physical display is required to construct a DisplayController.");
+
         displayScreen = new DisplayScreen(display, displayRotation);
     }
 

@@ -1,4 +1,5 @@
-﻿using Meadow;
+﻿using System;
+using Meadow;
 using Meadow.Foundation.Displays;
 using Meadow.Foundation.Leds;
 using Meadow.Hardware;
@@ -19,7 +20,8 @@ public class NetFramesF7FeatherHardware : INetFramesHardware
 
     public RotationType DisplayRotation => RotationType._270Degrees;
 
-    public IWiFiNetworkAdapter NetworkAdapter => featherF7.NetworkAdapters.Primary<IWiFiNetworkAdapter>();
+    public IWiFiNetworkAdapter NetworkAdapter => featherF7.NetworkAdapters.Primary<IWiFiNetworkAdapter>()
+        ?? throw new InvalidOperationException("No WiFi network adapter found on this device.");
 
     public NetFramesF7FeatherHardware(IF7FeatherMeadowDevice featherF7)
     {

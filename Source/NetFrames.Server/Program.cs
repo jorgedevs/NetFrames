@@ -125,31 +125,39 @@ app.MapGet("/images/{id}", async (string id, int? width, int? height) =>
 
         using var image = await Image.LoadAsync(filePath);
 
-        if (image.Width != width && image.Height != height)
+        if (width is null || height is null)
         {
-            float screenAspect = (float)((float)width! / height!);
+            // Only one dimension was requested: resize preserving aspect ratio.
+            image.Mutate(x => x.Resize(width ?? 0, height ?? 0));
+        }
+        else if (image.Width != width.Value || image.Height != height.Value)
+        {
+            int w = width.Value;
+            int h = height.Value;
+
+            float screenAspect = (float)w / h;
             float imageAspect = (float)image.Width / image.Height;
 
             if (screenAspect == imageAspect)
             {
-                image.Mutate(x => x.Resize(width ?? 0, height ?? 0));
+                image.Mutate(x => x.Resize(w, h));
             }
             else
             {
-                Rectangle cropRect = new Rectangle();
+                Rectangle cropRect;
 
                 if (screenAspect < imageAspect)
                 {
-                    image.Mutate(x => x.Resize(0, height.Value));
-                    cropRect = new Rectangle((int)((image.Width - width) / 2), 0, (int)width, (int)height);
+                    image.Mutate(x => x.Resize(0, h));
+                    cropRect = new Rectangle((image.Width - w) / 2, 0, w, h);
                 }
                 else
                 {
-                    image.Mutate(x => x.Resize(width.Value, 0));
-                    cropRect = new Rectangle(0, (int)((image.Height - height) / 2), (int)width, (int)height);
+                    image.Mutate(x => x.Resize(w, 0));
+                    cropRect = new Rectangle(0, (image.Height - h) / 2, w, h);
                 }
 
-                Console.WriteLine($"Cropping and resizing to {width}x{height}");
+                Console.WriteLine($"Cropping and resizing to {w}x{h}");
                 image.Mutate(x => x.Crop(cropRect));
             }
         }
