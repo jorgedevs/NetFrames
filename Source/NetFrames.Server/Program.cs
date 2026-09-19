@@ -8,6 +8,9 @@ builder.Services.AddOpenApi();
 
 var app = builder.Build();
 
+// Uncomment for receiving requests from other devices on the network
+app.Urls.Add("http://0.0.0.0:5233");
+
 if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
