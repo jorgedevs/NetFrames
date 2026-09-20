@@ -61,8 +61,15 @@ public class MainController
         if (allImages.Count == 0)
         {
             Resolver.Log.Info("All images have been shown. Resetting shown images list.");
+            var lastShown = imagesShown.LastOrDefault();
             imagesShown.Clear();
             allImages = await restClientController.GetImageFilenamesAsync();
+
+            // Don't open the new round with the image that just closed the previous one.
+            if (lastShown != null && allImages.Count > 1)
+            {
+                allImages.Remove(lastShown);
+            }
         }
 
         images = allImages;
