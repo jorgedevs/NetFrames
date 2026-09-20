@@ -80,10 +80,17 @@ public class MainController
                     {
                         Resolver.Log.Info("Network is connected. Fetching images...");
                         displayController.UpdateStatus("Fetching images...");
-                        await GetImagesAsync();
                     }
 
-                    if (images.Count > 0)
+                    // Refresh every cycle so newly uploaded, enabled or disabled images are picked up.
+                    await GetImagesAsync();
+
+                    if (images.Count == 0)
+                    {
+                        Resolver.Log.Info("No images available. Retrying...");
+                        await Task.Delay(TimeSpan.FromSeconds(10), cancellationToken);
+                    }
+                    else
                     {
                         displayController.UpdateStatus(string.Empty);
 
