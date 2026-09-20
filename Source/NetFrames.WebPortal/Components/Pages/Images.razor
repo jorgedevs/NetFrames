@@ -77,7 +77,7 @@ else
                 <span class="upload-grid-text">Add Photo</span>
             }
 
-            <InputFile OnChange="OnInputFileChange" accept=".jpg,.jpeg" class="upload-input" />
+            <InputFile OnChange="OnInputFileChange" accept=".jpg,.jpeg" class="upload-input" multiple />
         </div>
 
         @if (FilteredImages.Any())
@@ -305,64 +305,82 @@ else
 
     private CancellationTokenSource? toastCts;
 
+    private const int MaxFilesPerUpload = 50;
+
     private async Task OnInputFileChange(InputFileChangeEventArgs e)
     {
-        var file = e.File;
         uploadStatus = null;
 
-        if (!file.ContentType.StartsWith("image/"))
-        {
-            uploadStatus = "Please select a valid image file.";
-            uploadSuccess = false;
-            _ = DismissToastAfterDelay();
-            return;
-        }
+        var files = e.GetMultipleFiles(MaxFilesPerUpload);
 
         isUploading = true;
         StateHasChanged();
 
-        try
+        var successCount = 0;
+        var errors = new List<string>();
+
+        foreach (var file in files)
         {
-            using var fileData = new MemoryStream();
-            await file.OpenReadStream(maxAllowedSize: 10 * 1024 * 1024).CopyToAsync(fileData);
-            fileData.Position = 0;
-
-            using var content = new MultipartFormDataContent();
-            var streamContent = new StreamContent(fileData);
-            streamContent.Headers.ContentType = new MediaTypeHeaderValue(file.ContentType);
-            content.Add(streamContent, "image", file.Name);
-
-            var response = await Http.PostAsync($"{ApiConfig.BaseUrl}/images/upload", content);
-            if (response.IsSuccessStatusCode)
+            if (!file.ContentType.StartsWith("image/"))
             {
-                uploadStatus = "Image uploaded successfully!";
-                uploadSuccess = true;
-                images = await Http.GetFromJsonAsync<List<ImageInfo>>($"{ApiConfig.BaseUrl}/images/list/all");
+                errors.Add($"{file.Name}: not a valid image file.");
+                continue;
             }
-            else
+
+            try
             {
-                uploadStatus = $"Upload failed: {await response.Content.ReadAsStringAsync()}";
-                uploadSuccess = false;
+                using var fileData = new MemoryStream();
+                await file.OpenReadStream(maxAllowedSize: 10 * 1024 * 1024).CopyToAsync(fileData);
+                fileData.Position = 0;
+
+                using var content = new MultipartFormDataContent();
+                var streamContent = new StreamContent(fileData);
+                streamContent.Headers.ContentType = new MediaTypeHeaderValue(file.ContentType);
+                content.Add(streamContent, "image", file.Name);
+
+                var response = await Http.PostAsync($"{ApiConfig.BaseUrl}/images/upload", content);
+                if (response.IsSuccessStatusCode)
+                {
+                    successCount++;
+                }
+                else
+                {
+                    errors.Add($"{file.Name}: {await response.Content.ReadAsStringAsync()}");
+                }
+            }
+            catch (Exception ex)
+            {
+                if (ex.Message.Contains("exceeds the maximum"))
+                {
+                    var fileSizeMb = (file.Size / (1024.0 * 1024.0)).ToString("F1");
+                    errors.Add($"{file.Name}: exceeds the maximum size of 10 MB ({fileSizeMb} MB).");
+                }
+                else
+                {
+                    errors.Add($"{file.Name}: {ex.Message}");
+                }
             }
         }
-        catch (Exception ex)
+
+        if (successCount > 0)
         {
-            if (ex.Message.Contains("exceeds the maximum"))
-            {
-                var fileSizeMb = (file.Size / (1024.0 * 1024.0)).ToString("F1");
-                uploadStatus = $"File size ({fileSizeMb} MB) exceeds the maximum of 10 MB.";
-            }
-            else
-            {
-                uploadStatus = $"Error: {ex.Message}";
-            }
+            images = await Http.GetFromJsonAsync<List<ImageInfo>>($"{ApiConfig.BaseUrl}/images/list/all");
+        }
+
+        if (errors.Count == 0)
+        {
+            uploadStatus = successCount == 1 ? "Image uploaded successfully!" : $"{successCount} images uploaded successfully!";
+            uploadSuccess = true;
+        }
+        else
+        {
+            var prefix = successCount > 0 ? $"{successCount} uploaded, {errors.Count} failed: " : "Upload failed: ";
+            uploadStatus = prefix + string.Join("; ", errors);
             uploadSuccess = false;
         }
-        finally
-        {
-            isUploading = false;
-            _ = DismissToastAfterDelay();
-        }
+
+        isUploading = false;
+        _ = DismissToastAfterDelay();
     }
 
     private async Task DismissToastAfterDelay()
