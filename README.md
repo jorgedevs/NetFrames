@@ -27,25 +27,9 @@ The purpose of this portal is to manage the image collection that client devices
 
 ![NetFrames.WebPortal](Assets/Images/netframes-portal.png)
 
-### [NetFrames.EmbeddedClient](/Source/NetFrames.EmbeddedClient/)
+### [NetFrames.YoshiPiClient](/Source/NetFrames.YoshiPiClient/)
 
-You can build this digital portrait using a [Meadow F7 Feather](https://store.wildernesslabs.co/collections/frontpage/products/meadow-f7-feather) board and a ILI9341 TFT SPI 320x240 display.
-
-![NetFrames.EmbeddedClient](Assets/Images/netframes-embedded-client.jpg)
-
-#### Wiring
-
-Wire the Meadow F7 Feather board with the ILI9341 like the diagram below:
-
-![wiring netframes with a Meadow board](Assets/Images/netframes-wiring.jpg)
-
-
-#### Enclosure
-
-Feel free to 3D print this enclosure so you can place it on a desk or mount it on a wall. STL files are [here](/Assets/Enclosure/) or download directly from [TinkerCad](https://www.tinkercad.com/things/222cHvoUr3W-netframes-case).
-
-![NetFrames.EmbeddedClient](Assets/Images/netframes-enclosure.jpg)
-
+You can build this digital portrait using a YoshiPi.
 
 ## Build and Setup
 
@@ -124,19 +108,6 @@ When running the Server on a separate machine (such as a Raspberry Pi), you need
    ```
 
 3. Open `http://localhost:5150` in your browser.
-
-#### NetFrames.EmbeddedClient
-
-Finally, to set up your Meadow-powered Digital Frame, you'll only need to set your WIFI credentials in the `wifi.config.yaml` file, and set the base URL in the `RestClientController` class:
-
-```
-public class RestClientController
-{
-    // Base URL for the REST API (IP Address:Port)
-    string baseUrl = "http://192.168.1.73:5150/";
-...
-
-```
 
 ## Roadmap
 
