@@ -104,9 +104,41 @@ app.MapGet("/images/{id}/info", async (string id) =>
     });
 });
 
-// Get image endpoint (serve from disk)
-app.MapGet("/images/{id}", async (string id, int? width, int? height) =>
+// Thumbnail endpoint (generated once, cached on disk). Image ids are GUIDs and never change,
+// so responses can be cached by the browser for a long time.
+var thumbsPath = Path.Combine(app.Environment.ContentRootPath, "thumbs");
+Directory.CreateDirectory(thumbsPath);
+const int ThumbWidth = 400;
+const int ThumbHeight = 300;
+
+app.MapGet("/images/{id}/thumb", async (string id, HttpContext http) =>
 {
+    var filePath = Path.Combine(imagesPath, $"{id}.jpg");
+    if (!File.Exists(filePath))
+        return Results.NotFound();
+
+    var thumbPath = Path.Combine(thumbsPath, $"{id}.jpg");
+    if (!File.Exists(thumbPath))
+    {
+        using var image = await Image.LoadAsync(filePath);
+        image.Mutate(x => x.Resize(new ResizeOptions
+        {
+            Size = new Size(ThumbWidth, ThumbHeight),
+            Mode = ResizeMode.Crop
+        }));
+        var tmpPath = thumbPath + ".tmp";
+        await image.SaveAsJpegAsync(tmpPath);
+        File.Move(tmpPath, thumbPath, overwrite: true);
+    }
+
+    http.Response.Headers.CacheControl = "public, max-age=31536000, immutable";
+    return Results.File(thumbPath, "image/jpeg");
+});
+
+// Get image endpoint (serve from disk)
+app.MapGet("/images/{id}", async (string id, int? width, int? height, HttpContext http) =>
+{
+    http.Response.Headers.CacheControl = "public, max-age=31536000, immutable";
     var filePath = Path.Combine(imagesPath, $"{id}.jpg");
     Console.WriteLine($"Requested image id: {id}");
     Console.WriteLine($"File path: {filePath}");
@@ -212,6 +244,8 @@ app.MapDelete("/images/{id}", (string id) =>
     }
 
     File.Delete(filePath);
+    var thumbFile = Path.Combine(thumbsPath, $"{id}.jpg");
+    if (File.Exists(thumbFile)) File.Delete(thumbFile);
     if (disabledIds.Remove(id)) SaveDisabled();
 
     return Results.Ok(new { message = $"Image {id} deleted." });

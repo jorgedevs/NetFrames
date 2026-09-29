@@ -418,3 +418,6 @@ FodyWeavers.xsd
 *.msp
 
 Source/.idea/.idea.NetFrames/.idea/
+
+# Generated thumbnail cache
+Source/NetFrames.Server/thumbs/

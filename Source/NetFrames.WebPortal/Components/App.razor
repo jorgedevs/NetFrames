@@ -29,6 +29,22 @@
             }
         }
 
+        var sentinelObserver;
+        function observeSentinel(el, dotnetRef) {
+            if (sentinelObserver) sentinelObserver.disconnect();
+            if (!el) return;
+            sentinelObserver = new IntersectionObserver(function(entries) {
+                if (entries.some(function(e) { return e.isIntersecting; })) {
+                    sentinelObserver.disconnect();
+                    dotnetRef.invokeMethodAsync('LoadMore');
+                }
+            }, { rootMargin: '400px' });
+            sentinelObserver.observe(el);
+        }
+        function disconnectSentinel() {
+            if (sentinelObserver) sentinelObserver.disconnect();
+        }
+
         document.addEventListener('DOMContentLoaded', function() {
             var theme = localStorage.getItem('theme') || 'light';
             var icon = document.getElementById('theme-icon');

@@ -3,6 +3,8 @@
 @rendermode InteractiveServer
 @inject ApiConfig ApiConfig
 @inject HttpClient Http
+@inject IJSRuntime JS
+@implements IAsyncDisposable
 
 <PageTitle>NetFrames - Home</PageTitle>
 
@@ -82,24 +84,30 @@ else
 
         @if (FilteredImages.Any())
         {
-            @foreach (var img in FilteredImages)
+            @foreach (var img in VisibleImages)
             {
                 var isSelected = selectedIds.Contains(img.Id);
-                <div class="image-container @(isSelected ? "selected" : "") @(!img.Enabled ? "disabled" : "")">
+                <div @key="img.Id" class="image-container @(isSelected ? "selected" : "") @(!img.Enabled ? "disabled" : "")">
                     <button class="select-btn @(isSelected ? "checked" : "")"
                             @onclick="() => ToggleSelect(img.Id)"
                             @onclick:stopPropagation
                             title="Select image">
                         <i class="bi @(isSelected ? "bi-check-circle-fill" : "bi-check-circle")"></i>
                     </button>
-                    <img src="@($"{ApiConfig.BaseUrl}/images/{img.Id}")"
+                    <img src="@($"{ApiConfig.BaseUrl}/images/{img.Id}/thumb")"
                          class="grid-image"
+                         decoding="async"
                          @onclick="() => ShowModal(img.Id)"
                          alt="Gallery image" />
                 </div>
             }
         }
     </div>
+
+    @if (HasMore)
+    {
+        <div @key="visibleCount" @ref="sentinel" class="load-more-sentinel"></div>
+    }
 }
 
 @if (!string.IsNullOrEmpty(uploadStatus))
@@ -183,10 +191,46 @@ else
         _ => images ?? Enumerable.Empty<ImageInfo>()
     };
 
+    private const int PageSize = 36;
+    private int visibleCount = PageSize;
+    private ElementReference sentinel;
+    private int observedCount = -1;
+    private DotNetObjectReference<Images>? selfRef;
+
+    private IEnumerable<ImageInfo> VisibleImages => FilteredImages.Take(visibleCount);
+    private bool HasMore => FilteredImages.Count() > visibleCount;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        // Arm the observer once per batch; the sentinel element is recreated whenever visibleCount changes.
+        if (HasMore && observedCount != visibleCount)
+        {
+            observedCount = visibleCount;
+            selfRef ??= DotNetObjectReference.Create(this);
+            await JS.InvokeVoidAsync("observeSentinel", sentinel, selfRef);
+        }
+    }
+
+    [JSInvokable]
+    public void LoadMore()
+    {
+        visibleCount += PageSize;
+        StateHasChanged();
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        selfRef?.Dispose();
+        try { await JS.InvokeVoidAsync("disconnectSentinel"); }
+        catch (JSDisconnectedException) { }
+    }
+
     private void SetFilter(string filter)
     {
         activeFilter = filter;
         selectedIds.Clear();
+        visibleCount = PageSize;
+        observedCount = -1;
     }
 
     private void SelectAll()
