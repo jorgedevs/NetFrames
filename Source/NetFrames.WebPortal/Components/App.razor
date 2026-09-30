@@ -29,6 +29,14 @@
             }
         }
 
+        // Firefox only starts a drag when the drag event carries data.
+        document.addEventListener('dragstart', function(e) {
+            if (e.dataTransfer) {
+                e.dataTransfer.setData('text/plain', 'netframes');
+                e.dataTransfer.effectAllowed = 'move';
+            }
+        });
+
         var sentinelObserver;
         function observeSentinel(el, dotnetRef) {
             if (sentinelObserver) sentinelObserver.disconnect();

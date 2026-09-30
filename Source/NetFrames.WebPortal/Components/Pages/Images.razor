@@ -9,7 +9,17 @@
 <PageTitle>NetFrames - Home</PageTitle>
 
 <div class="page-header">
-    <h1>Photo Collection</h1>
+    @if (currentFolder is null)
+    {
+        <h1>Photo Collection</h1>
+    }
+    else
+    {
+        <h1 class="breadcrumb-title">
+            <a href="javascript:void(0)" class="breadcrumb-link" @onclick="() => OpenFolder(null)">Photo Collection</a>
+            <i class="bi bi-chevron-right breadcrumb-sep"></i>@currentFolder.Name
+        </h1>
+    }
     @if (selectedIds.Count > 0)
     {
         <span class="selected-count-label">@selectedIds.Count Selected</span>
@@ -20,6 +30,9 @@
                 Select All
             </button>
         }
+        <button class="btn btn-outline-secondary btn-sm" @onclick="OpenMoveDialog" title="Move selected images to a folder">
+            <i class="bi bi-folder-symlink me-1"></i> Move to…
+        </button>
         @if (GetVisibilityAction() is string action)
         {
             <button class="btn btn-outline-secondary btn-sm toggle-selected-btn" @onclick="ToggleSelectedVisibility" title="@action selected images">
@@ -48,7 +61,25 @@
     </div>
     @if (images != null)
     {
-        <span class="image-count-label">@images.Count photo@(images.Count != 1 ? "s" : "") · @images.Count(i => i.Enabled) enabled</span>
+        var scoped = ScopedImages.ToList();
+        <span class="image-count-label">@scoped.Count photo@(scoped.Count != 1 ? "s" : "") · @scoped.Count(i => i.Enabled) enabled</span>
+    }
+    @if (currentFolder is null)
+    {
+        <button class="btn btn-outline-secondary btn-sm new-folder-btn" @onclick="OpenFolderDialog">
+            <i class="bi bi-folder-plus me-1"></i> New folder
+        </button>
+    }
+    else
+    {
+        <div class="folder-actions">
+            <button class="btn btn-outline-secondary btn-sm" @onclick="() => OpenFolderDialog(currentFolder)" title="Rename folder">
+                <i class="bi bi-pencil me-1"></i> Rename
+            </button>
+            <button class="btn btn-outline-danger btn-sm" @onclick="() => AskDeleteFolder(currentFolder)" title="Delete folder">
+                <i class="bi bi-trash me-1"></i> Delete folder
+            </button>
+        </div>
     }
 </div>
 
@@ -82,6 +113,37 @@ else
             <InputFile OnChange="OnInputFileChange" accept=".jpg,.jpeg" class="upload-input" multiple />
         </div>
 
+        @if (currentFolder is null)
+        {
+            @foreach (var folder in folders)
+            {
+                <div @key="folder.Id"
+                     class="image-container folder-tile @(dropFolderId == folder.Id ? "drag-over" : "") @(folder.IsHidden ? "disabled" : "")"
+                     @onclick="() => OpenFolder(folder.Id)"
+                     @ondragenter="() => dropFolderId = folder.Id"
+                     @ondragover="() => dropFolderId = folder.Id"
+                     @ondragover:preventDefault
+                     @ondragleave="() => { if (dropFolderId == folder.Id) dropFolderId = null; }"
+                     @ondrop="() => OnDropOnFolder(folder.Id)"
+                     @ondrop:preventDefault
+                     @ondrop:stopPropagation>
+                    @if (folder.CoverId is not null)
+                    {
+                        <img src="@($"{ApiConfig.BaseUrl}/images/{folder.CoverId}/thumb")" class="grid-image folder-cover" alt="" draggable="false" />
+                    }
+                    else
+                    {
+                        <div class="grid-image folder-cover folder-empty"><i class="bi bi-folder2-open"></i></div>
+                    }
+                    <div class="folder-label" title="@folder.Name">
+                        <i class="bi bi-folder-fill me-2"></i>
+                        <span class="folder-name">@folder.Name</span>
+                    </div>
+                    <span class="folder-count">@folder.Count</span>
+                </div>
+            }
+        }
+
         @if (FilteredImages.Any())
         {
             @foreach (var img in VisibleImages)
@@ -97,6 +159,9 @@ else
                     <img src="@($"{ApiConfig.BaseUrl}/images/{img.Id}/thumb")"
                          class="grid-image"
                          decoding="async"
+                         draggable="true"
+                         @ondragstart="() => OnImageDragStart(img.Id)"
+                         @ondragend="() => { draggingIds = null; dropFolderId = null; }"
                          @onclick="() => ShowModal(img.Id)"
                          alt="Gallery image" />
                 </div>
@@ -127,6 +192,69 @@ else
             <div class="confirm-dialog-actions">
                 <button class="btn btn-sm btn-outline-secondary" @onclick="() => showConfirmDelete = false">Cancel</button>
                 <button class="btn btn-sm btn-danger" @onclick="OnConfirmDelete">Delete</button>
+            </div>
+        </div>
+    </div>
+}
+
+@if (showFolderDialog)
+{
+    <div class="modal-backdrop" @onclick="() => showFolderDialog = false">
+        <div class="confirm-dialog" @onclick:stopPropagation>
+            <h5>@(editingFolder is null ? "New Folder" : "Rename Folder")</h5>
+            <input class="form-control form-control-sm mb-2" placeholder="Folder name" maxlength="60"
+                   @bind="folderNameInput" @bind:event="oninput" @onkeydown="OnFolderNameKey" />
+            @if (!string.IsNullOrEmpty(folderError))
+            {
+                <div class="folder-error">@folderError</div>
+            }
+            <div class="confirm-dialog-actions">
+                <button class="btn btn-sm btn-outline-secondary" @onclick="() => showFolderDialog = false">Cancel</button>
+                <button class="btn btn-sm btn-primary" @onclick="SaveFolder" disabled="@string.IsNullOrWhiteSpace(folderNameInput)">Save</button>
+            </div>
+        </div>
+    </div>
+}
+
+@if (folderToDelete is not null)
+{
+    <div class="modal-backdrop" @onclick="() => folderToDelete = null">
+        <div class="confirm-dialog" @onclick:stopPropagation>
+            <h5>Delete Folder</h5>
+            <p>Delete "@folderToDelete.Name"? Its photos are kept and move back to the main collection.</p>
+            <div class="confirm-dialog-actions">
+                <button class="btn btn-sm btn-outline-secondary" @onclick="() => folderToDelete = null">Cancel</button>
+                <button class="btn btn-sm btn-danger" @onclick="ConfirmDeleteFolder">Delete</button>
+            </div>
+        </div>
+    </div>
+}
+
+@if (showMoveDialog)
+{
+    <div class="modal-backdrop" @onclick="() => showMoveDialog = false">
+        <div class="confirm-dialog" @onclick:stopPropagation>
+            <h5>Move @selectedIds.Count photo@(selectedIds.Count != 1 ? "s" : "") to…</h5>
+            <div class="move-list">
+                @if (currentFolder is not null)
+                {
+                    <button class="move-option" @onclick="() => MoveImages(selectedIds.ToList(), null)">
+                        <i class="bi bi-images me-2"></i> Main collection
+                    </button>
+                }
+                @foreach (var folder in folders.Where(f => f.Id != currentFolder?.Id))
+                {
+                    <button class="move-option" @onclick="() => MoveImages(selectedIds.ToList(), folder.Id)">
+                        <i class="bi bi-folder-fill me-2"></i> @folder.Name
+                    </button>
+                }
+                @if (folders.Count == 0 && currentFolder is null)
+                {
+                    <p class="text-muted mb-0">No folders yet. Create one with "New folder".</p>
+                }
+            </div>
+            <div class="confirm-dialog-actions">
+                <button class="btn btn-sm btn-outline-secondary" @onclick="() => showMoveDialog = false">Cancel</button>
             </div>
         </div>
     </div>
@@ -181,15 +309,139 @@ else
     private HashSet<string> selectedIds = new();
 
     private string activeFilter = "All";
-    private record ImageInfo(string Id, bool Enabled);
+    private record ImageInfo(string Id, bool Enabled, string? FolderId = null);
     private record ImageMetadata(string Extension, DateTime UploadedAt, int Width, int Height);
+    private record FolderInfo(string Id, string Name, int Count, string? CoverId, int EnabledCount = 0)
+    {
+        // A folder is fully hidden when it has photos and none of them are enabled.
+        public bool IsHidden => Count > 0 && EnabledCount == 0;
+    }
+    private record UploadResult(string Id);
+
+    // Folders
+    private List<FolderInfo> folders = new();
+    private FolderInfo? currentFolder;
+    private string? dropFolderId;
+    private List<string>? draggingIds;
+    private bool showFolderDialog;
+    private bool showMoveDialog;
+    private FolderInfo? editingFolder;
+    private FolderInfo? folderToDelete;
+    private string folderNameInput = "";
+    private string? folderError;
+
+    // Images in the current view: the top level shows unfiled images, a folder shows its own.
+    private IEnumerable<ImageInfo> ScopedImages =>
+        (images ?? new List<ImageInfo>()).Where(i => i.FolderId == currentFolder?.Id);
 
     private IEnumerable<ImageInfo> FilteredImages => activeFilter switch
     {
-        "Enabled" => images?.Where(i => i.Enabled) ?? Enumerable.Empty<ImageInfo>(),
-        "Disabled" => images?.Where(i => !i.Enabled) ?? Enumerable.Empty<ImageInfo>(),
-        _ => images ?? Enumerable.Empty<ImageInfo>()
+        "Enabled" => ScopedImages.Where(i => i.Enabled),
+        "Disabled" => ScopedImages.Where(i => !i.Enabled),
+        _ => ScopedImages
     };
+
+    private async Task LoadFoldersAsync()
+    {
+        folders = await Http.GetFromJsonAsync<List<FolderInfo>>($"{ApiConfig.BaseUrl}/folders") ?? new();
+        if (currentFolder is not null)
+            currentFolder = folders.FirstOrDefault(f => f.Id == currentFolder.Id);
+    }
+
+    private async Task RefreshAsync()
+    {
+        images = await Http.GetFromJsonAsync<List<ImageInfo>>($"{ApiConfig.BaseUrl}/images/list/all");
+        await LoadFoldersAsync();
+    }
+
+    private void OpenFolder(string? id)
+    {
+        currentFolder = id is null ? null : folders.FirstOrDefault(f => f.Id == id);
+        selectedIds.Clear();
+        visibleCount = PageSize;
+        observedCount = -1;
+    }
+
+    private void OpenFolderDialog() => OpenFolderDialog(null);
+
+    private void OpenFolderDialog(FolderInfo? folder)
+    {
+        editingFolder = folder;
+        folderNameInput = folder?.Name ?? "";
+        folderError = null;
+        showFolderDialog = true;
+    }
+
+    private async Task OnFolderNameKey(KeyboardEventArgs e)
+    {
+        if (e.Key == "Enter") await SaveFolder();
+    }
+
+    private async Task SaveFolder()
+    {
+        if (string.IsNullOrWhiteSpace(folderNameInput)) return;
+
+        var body = new { name = folderNameInput.Trim() };
+        var response = editingFolder is null
+            ? await Http.PostAsJsonAsync($"{ApiConfig.BaseUrl}/folders", body)
+            : await Http.PutAsJsonAsync($"{ApiConfig.BaseUrl}/folders/{editingFolder.Id}", body);
+
+        if (!response.IsSuccessStatusCode)
+        {
+            folderError = await response.Content.ReadAsStringAsync();
+            return;
+        }
+
+        showFolderDialog = false;
+        await LoadFoldersAsync();
+    }
+
+    private void AskDeleteFolder(FolderInfo folder) => folderToDelete = folder;
+
+    private async Task ConfirmDeleteFolder()
+    {
+        if (folderToDelete is null) return;
+        var id = folderToDelete.Id;
+        folderToDelete = null;
+
+        var response = await Http.DeleteAsync($"{ApiConfig.BaseUrl}/folders/{id}");
+        if (response.IsSuccessStatusCode)
+        {
+            await RefreshAsync();
+            OpenFolder(null);
+        }
+    }
+
+    private void OpenMoveDialog()
+    {
+        if (selectedIds.Count > 0) showMoveDialog = true;
+    }
+
+    private void OnImageDragStart(string id)
+    {
+        // Dragging a selected image moves the whole selection; otherwise just that image.
+        draggingIds = selectedIds.Contains(id) ? selectedIds.ToList() : new List<string> { id };
+    }
+
+    private async Task OnDropOnFolder(string folderId)
+    {
+        dropFolderId = null;
+        var ids = draggingIds;
+        draggingIds = null;
+        if (ids is { Count: > 0 })
+            await MoveImages(ids, folderId);
+    }
+
+    private async Task MoveImages(List<string> ids, string? folderId)
+    {
+        showMoveDialog = false;
+        var response = await Http.PostAsJsonAsync($"{ApiConfig.BaseUrl}/images/move", new { imageIds = ids, folderId });
+        if (response.IsSuccessStatusCode)
+        {
+            await RefreshAsync();
+            foreach (var id in ids) selectedIds.Remove(id);
+        }
+    }
 
     private const int PageSize = 36;
     private int visibleCount = PageSize;
@@ -245,6 +497,7 @@ else
         try
         {
             images = await Http.GetFromJsonAsync<List<ImageInfo>>($"{ApiConfig.BaseUrl}/images/list/all");
+            await LoadFoldersAsync();
         }
         finally
         {
@@ -281,6 +534,7 @@ else
                 if (index >= 0)
                     images[index] = result;
             }
+            await LoadFoldersAsync();
             StateHasChanged();
         }
     }
@@ -302,6 +556,7 @@ else
             }
         }
         selectedIds.Clear();
+        await LoadFoldersAsync();
         StateHasChanged();
     }
 
@@ -336,6 +591,7 @@ else
             }
         }
 
+        await LoadFoldersAsync();
         isDeleting = false;
         uploadSuccess = true;
         uploadStatus = $"{deletedCount} image{(deletedCount != 1 ? "s" : "")} deleted.";
@@ -361,6 +617,7 @@ else
         StateHasChanged();
 
         var successCount = 0;
+        var uploadedIds = new List<string>();
         var errors = new List<string>();
 
         foreach (var file in files)
@@ -386,6 +643,8 @@ else
                 if (response.IsSuccessStatusCode)
                 {
                     successCount++;
+                    var result = await response.Content.ReadFromJsonAsync<UploadResult>();
+                    if (result is not null) uploadedIds.Add(result.Id);
                 }
                 else
                 {
@@ -408,7 +667,13 @@ else
 
         if (successCount > 0)
         {
-            images = await Http.GetFromJsonAsync<List<ImageInfo>>($"{ApiConfig.BaseUrl}/images/list/all");
+            // Uploading while inside a folder files the new photos there.
+            if (currentFolder is not null && uploadedIds.Count > 0)
+            {
+                await Http.PostAsJsonAsync($"{ApiConfig.BaseUrl}/images/move",
+                    new { imageIds = uploadedIds, folderId = currentFolder.Id });
+            }
+            await RefreshAsync();
         }
 
         if (errors.Count == 0)
@@ -473,6 +738,7 @@ else
             images?.RemoveAll(i => i.Id == selectedId);
             selectedIds.Remove(selectedId);
             showModal = false;
+            await LoadFoldersAsync();
             StateHasChanged();
         }
     }

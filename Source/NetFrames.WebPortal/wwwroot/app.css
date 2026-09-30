@@ -292,7 +292,8 @@ h1:focus {
 .filter-bar {
     display: flex;
     align-items: center;
-    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 8px 20px;
     margin-top: 10px;
     margin-bottom: 4px;
 }
@@ -469,4 +470,148 @@ h1:focus {
 
 .visibility-btn:hover {
     color: var(--text);
+}
+
+/* Folders */
+.breadcrumb-title {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.breadcrumb-link {
+    color: inherit;
+    opacity: 0.6;
+    text-decoration: none;
+}
+
+.breadcrumb-link:hover {
+    opacity: 1;
+}
+
+.breadcrumb-sep {
+    font-size: 0.9rem;
+    opacity: 0.5;
+}
+
+.new-folder-btn {
+    margin-left: auto;
+}
+
+.folder-tile {
+    cursor: pointer;
+    border-radius: 8px;
+    border: 2px solid transparent;
+    transition: border-color 0.15s, transform 0.15s;
+}
+
+.folder-tile:hover {
+    transform: translateY(-2px);
+}
+
+.folder-tile.drag-over {
+    border-color: #1b6ec2;
+    transform: scale(1.03);
+}
+
+.folder-cover {
+    filter: brightness(0.75);
+    pointer-events: none;
+}
+
+.folder-empty {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2.5rem;
+    color: var(--text-muted);
+    filter: none;
+}
+
+.folder-label {
+    position: absolute;
+    left: 8px;
+    right: 8px;
+    bottom: 0px;
+    display: flex;
+    align-items: center;
+    color: #fff;
+    font-weight: 500;
+    text-shadow: 0 1px 3px rgba(0,0,0,0.6);
+    pointer-events: none;
+}
+
+.folder-empty + .folder-label {
+    color: var(--text);
+    text-shadow: none;
+}
+
+.folder-label i {
+    font-size: 1.3rem;
+}
+
+.folder-name {
+    flex: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    opacity: 0;
+    transition: opacity 0.15s;
+    font-size: 0.9rem;
+}
+
+.folder-tile:hover .folder-name {
+    opacity: 1;
+}
+
+.folder-count {
+    position: absolute;
+    top: 6px;
+    right: 6px;
+    min-width: 28px;
+    height: 28px;
+    padding: 0 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0,0,0,0.55);
+    color: #fff;
+    border-radius: 14px;
+    font-size: 0.7rem;
+    font-weight: 500;
+    pointer-events: none;
+}
+
+.folder-actions {
+    margin-left: auto;
+    display: flex;
+    gap: 8px;
+}
+
+.folder-error {
+    color: #dc3545;
+    font-size: 0.85rem;
+    margin-bottom: 8px;
+}
+
+.move-list {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    max-height: 260px;
+    overflow-y: auto;
+    margin-bottom: 12px;
+}
+
+.move-option {
+    text-align: left;
+    background: transparent;
+    color: var(--text);
+    border: 1px solid rgba(128,128,128,0.3);
+    border-radius: 8px;
+    padding: 8px 12px;
+}
+
+.move-option:hover {
+    background: rgba(128,128,128,0.15);
 }

@@ -33,6 +33,24 @@ if (File.Exists(disabledPath))
 }
 void SaveDisabled() => File.WriteAllText(disabledPath, JsonSerializer.Serialize(disabledIds));
 
+// Folders: metadata only, image files never move. An image belongs to at most one folder.
+var foldersPath = Path.Combine(imagesPath, "folders.json");
+var foldersLock = new object();
+var folderData = new FolderData();
+if (File.Exists(foldersPath))
+{
+    folderData = JsonSerializer.Deserialize<FolderData>(File.ReadAllText(foldersPath)) ?? new();
+}
+void SaveFolders() => File.WriteAllText(foldersPath, JsonSerializer.Serialize(folderData));
+
+string? FolderOf(string imageId)
+{
+    lock (foldersLock)
+    {
+        return folderData.Assignments.TryGetValue(imageId, out var folderId) ? folderId : null;
+    }
+}
+
 // String simple endpoint
 app.MapGet("/hello", () =>
 {
@@ -55,7 +73,7 @@ app.MapGet("/images/list/all", () =>
 {
     var files = Directory.GetFiles(imagesPath, "*.jpg")
         .Select(f => Path.GetFileNameWithoutExtension(f))
-        .Select(id => new { id, enabled = !disabledIds.Contains(id) })
+        .Select(id => new { id, enabled = !disabledIds.Contains(id), folderId = FolderOf(id) })
         .ToArray();
 
     return Results.Ok(files);
@@ -81,7 +99,7 @@ app.MapPost("/images/{id}/toggle", (string id) =>
     }
     SaveDisabled();
 
-    return Results.Ok(new { id, enabled });
+    return Results.Ok(new { id, enabled, folderId = FolderOf(id) });
 });
 
 // Get image metadata
@@ -247,7 +265,126 @@ app.MapDelete("/images/{id}", (string id) =>
     var thumbFile = Path.Combine(thumbsPath, $"{id}.jpg");
     if (File.Exists(thumbFile)) File.Delete(thumbFile);
     if (disabledIds.Remove(id)) SaveDisabled();
+    lock (foldersLock)
+    {
+        if (folderData.Assignments.Remove(id)) SaveFolders();
+    }
 
     return Results.Ok(new { message = $"Image {id} deleted." });
 });
+
+// List folders with image counts and a cover image
+app.MapGet("/folders", () =>
+{
+    var existing = Directory.GetFiles(imagesPath, "*.jpg")
+        .Select(f => Path.GetFileNameWithoutExtension(f))
+        .ToHashSet();
+
+    lock (foldersLock)
+    {
+        var result = folderData.Folders.Select(f =>
+        {
+            var ids = folderData.Assignments
+                .Where(a => a.Value == f.Id && existing.Contains(a.Key))
+                .Select(a => a.Key)
+                .ToList();
+            return new
+            {
+                id = f.Id,
+                name = f.Name,
+                count = ids.Count,
+                enabledCount = ids.Count(i => !disabledIds.Contains(i)),
+                coverId = ids.FirstOrDefault()
+            };
+        });
+        return Results.Ok(result.ToArray());
+    }
+});
+
+app.MapPost("/folders", (FolderRequest request) =>
+{
+    var name = request.Name?.Trim();
+    if (string.IsNullOrEmpty(name))
+        return Results.BadRequest("Folder name is required.");
+
+    lock (foldersLock)
+    {
+        if (folderData.Folders.Any(f => f.Name.Equals(name, StringComparison.OrdinalIgnoreCase)))
+            return Results.Conflict("A folder with that name already exists.");
+
+        var folder = new Folder(Guid.NewGuid().ToString(), name);
+        folderData.Folders.Add(folder);
+        SaveFolders();
+        return Results.Ok(new { id = folder.Id, name = folder.Name, count = 0, enabledCount = 0, coverId = (string?)null });
+    }
+});
+
+app.MapPut("/folders/{id}", (string id, FolderRequest request) =>
+{
+    var name = request.Name?.Trim();
+    if (string.IsNullOrEmpty(name))
+        return Results.BadRequest("Folder name is required.");
+
+    lock (foldersLock)
+    {
+        var index = folderData.Folders.FindIndex(f => f.Id == id);
+        if (index < 0)
+            return Results.NotFound();
+        if (folderData.Folders.Any(f => f.Id != id && f.Name.Equals(name, StringComparison.OrdinalIgnoreCase)))
+            return Results.Conflict("A folder with that name already exists.");
+
+        folderData.Folders[index] = folderData.Folders[index] with { Name = name };
+        SaveFolders();
+        return Results.Ok(new { id, name });
+    }
+});
+
+// Deleting a folder only returns its images to the top level; photos are never deleted.
+app.MapDelete("/folders/{id}", (string id) =>
+{
+    lock (foldersLock)
+    {
+        if (folderData.Folders.RemoveAll(f => f.Id == id) == 0)
+            return Results.NotFound();
+
+        foreach (var key in folderData.Assignments.Where(a => a.Value == id).Select(a => a.Key).ToList())
+            folderData.Assignments.Remove(key);
+        SaveFolders();
+        return Results.Ok(new { message = $"Folder {id} deleted." });
+    }
+});
+
+// Move images into a folder (or back to the top level when folderId is null)
+app.MapPost("/images/move", (MoveRequest request) =>
+{
+    lock (foldersLock)
+    {
+        if (request.FolderId is not null && !folderData.Folders.Any(f => f.Id == request.FolderId))
+            return Results.NotFound("Folder not found.");
+
+        foreach (var imageId in request.ImageIds ?? [])
+        {
+            if (!File.Exists(Path.Combine(imagesPath, $"{imageId}.jpg")))
+                continue;
+
+            if (request.FolderId is null)
+                folderData.Assignments.Remove(imageId);
+            else
+                folderData.Assignments[imageId] = request.FolderId;
+        }
+        SaveFolders();
+        return Results.Ok();
+    }
+});
+
 app.Run();
+
+record Folder(string Id, string Name);
+record FolderRequest(string? Name);
+record MoveRequest(string[]? ImageIds, string? FolderId);
+
+class FolderData
+{
+    public List<Folder> Folders { get; set; } = new();
+    public Dictionary<string, string> Assignments { get; set; } = new();
+}
