@@ -158,6 +158,7 @@ else
                     </button>
                     <img src="@($"{ApiConfig.BaseUrl}/images/{img.Id}/thumb")"
                          class="grid-image"
+                         title="@(img.HasTakenDate ? $"Taken {img.TakenAt:MMM d, yyyy h:mm tt}" : null)"
                          decoding="async"
                          draggable="true"
                          @ondragstart="() => OnImageDragStart(img.Id)"
@@ -275,7 +276,14 @@ else
             {
                 <div class="modal-metadata">
                     <span>@($"{imageMetadata.Width} x {imageMetadata.Height}")</span>
-                    <span>@imageMetadata.UploadedAt.ToLocalTime().ToString("MMM d, yyyy h:mm tt")</span>
+                    @if (imageMetadata.HasTakenDate && imageMetadata.TakenAt is DateTime taken)
+                    {
+                        <span title="Date taken (from photo)"><i class="bi bi-camera me-1"></i>@taken.ToString("MMM d, yyyy h:mm tt")</span>
+                    }
+                    else
+                    {
+                        <span title="Date uploaded (photo has no date taken)"><i class="bi bi-cloud-upload me-1"></i>@imageMetadata.UploadedAt.ToLocalTime().ToString("MMM d, yyyy h:mm tt")</span>
+                    }
                 </div>
             }
 
@@ -309,8 +317,8 @@ else
     private HashSet<string> selectedIds = new();
 
     private string activeFilter = "All";
-    private record ImageInfo(string Id, bool Enabled, string? FolderId = null);
-    private record ImageMetadata(string Extension, DateTime UploadedAt, int Width, int Height);
+    private record ImageInfo(string Id, bool Enabled, string? FolderId = null, DateTime? TakenAt = null, bool HasTakenDate = false);
+    private record ImageMetadata(string Extension, DateTime UploadedAt, int Width, int Height, DateTime? TakenAt = null, bool HasTakenDate = false);
     private record FolderInfo(string Id, string Name, int Count, string? CoverId, int EnabledCount = 0)
     {
         // A folder is fully hidden when it has photos and none of them are enabled.
@@ -532,7 +540,7 @@ else
             {
                 var index = images.FindIndex(i => i.Id == result.Id);
                 if (index >= 0)
-                    images[index] = result;
+                    images[index] = images[index] with { Enabled = result.Enabled };
             }
             await LoadFoldersAsync();
             StateHasChanged();
@@ -551,7 +559,7 @@ else
                 {
                     var index = images.FindIndex(i => i.Id == result.Id);
                     if (index >= 0)
-                        images[index] = result;
+                        images[index] = images[index] with { Enabled = result.Enabled };
                 }
             }
         }

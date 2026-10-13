@@ -1,5 +1,10 @@
+using System.Collections.Concurrent;
+using System.Globalization;
 using System.Text.Json;
 using SixLabors.ImageSharp;
+using SixLabors.ImageSharp.Formats;
+using SixLabors.ImageSharp.Formats.Jpeg;
+using SixLabors.ImageSharp.Metadata.Profiles.Exif;
 using SixLabors.ImageSharp.Processing;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -17,6 +22,11 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseStaticFiles();
+
+// Only ever decode JPEGs. Photos are stored as .jpg, and keeping the other decoders (TIFF, etc.)
+// out of reach avoids ImageSharp 3.x advisories such as GHSA-wmxv-xphr-5c9g (BigTIFF decoder hang).
+var jpegOnly = new DecoderOptions { Configuration = new Configuration(new JpegConfigurationModule()) };
+const long MaxUploadBytes = 20 * 1024 * 1024;
 
 // In-memory image store (replace with persistent storage for production)
 var imageStore = new Dictionary<string, byte[]>();
@@ -42,6 +52,39 @@ if (File.Exists(foldersPath))
     folderData = JsonSerializer.Deserialize<FolderData>(File.ReadAllText(foldersPath)) ?? new();
 }
 void SaveFolders() => File.WriteAllText(foldersPath, JsonSerializer.Serialize(folderData));
+
+// Date a photo was taken, from EXIF when present, otherwise the file's date. Only the image
+// header is read, and results are cached since a photo's content never changes for its id.
+var photoDates = new ConcurrentDictionary<string, PhotoDate>();
+string[] exifDateFormats = ["yyyy:MM:dd HH:mm:ss", "yyyy-MM-dd HH:mm:ss", "yyyy:MM:dd HH:mm"];
+
+PhotoDate GetPhotoDate(string id) => photoDates.GetOrAdd(id, key =>
+{
+    var path = Path.Combine(imagesPath, $"{key}.jpg");
+    try
+    {
+        var exif = Image.Identify(jpegOnly, path).Metadata.ExifProfile;
+        if (exif is not null)
+        {
+            foreach (var tag in new[] { ExifTag.DateTimeOriginal, ExifTag.DateTimeDigitized, ExifTag.DateTime })
+            {
+                if (exif.TryGetValue(tag, out var value)
+                    && DateTime.TryParseExact(value.Value?.Trim('\0', ' '), exifDateFormats,
+                        CultureInfo.InvariantCulture, DateTimeStyles.None, out var taken))
+                {
+                    return new PhotoDate(taken, true);
+                }
+            }
+        }
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine($"Could not read EXIF for {key}: {ex.Message}");
+    }
+
+    // Camera EXIF times are wall-clock times, so keep the fallback in the same form.
+    return new PhotoDate(DateTime.SpecifyKind(File.GetLastWriteTime(path), DateTimeKind.Unspecified), false);
+});
 
 string? FolderOf(string imageId)
 {
@@ -73,7 +116,16 @@ app.MapGet("/images/list/all", () =>
 {
     var files = Directory.GetFiles(imagesPath, "*.jpg")
         .Select(f => Path.GetFileNameWithoutExtension(f))
-        .Select(id => new { id, enabled = !disabledIds.Contains(id), folderId = FolderOf(id) })
+        .Select(id => new { id, date = GetPhotoDate(id) })
+        .OrderByDescending(x => x.date.TakenAt)
+        .Select(x => new
+        {
+            id = x.id,
+            enabled = !disabledIds.Contains(x.id),
+            folderId = FolderOf(x.id),
+            takenAt = x.date.TakenAt,
+            hasTakenDate = x.date.FromExif
+        })
         .ToArray();
 
     return Results.Ok(files);
@@ -110,13 +162,16 @@ app.MapGet("/images/{id}/info", async (string id) =>
         return Results.NotFound();
 
     var fileInfo = new FileInfo(filePath);
-    using var image = await Image.LoadAsync(filePath);
+    var image = await Image.IdentifyAsync(jpegOnly, filePath);
+    var date = GetPhotoDate(id);
 
     return Results.Ok(new
     {
         id,
         extension = ".jpg",
         uploadedAt = fileInfo.CreationTimeUtc,
+        takenAt = date.TakenAt,
+        hasTakenDate = date.FromExif,
         width = image.Width,
         height = image.Height
     });
@@ -138,7 +193,7 @@ app.MapGet("/images/{id}/thumb", async (string id, HttpContext http) =>
     var thumbPath = Path.Combine(thumbsPath, $"{id}.jpg");
     if (!File.Exists(thumbPath))
     {
-        using var image = await Image.LoadAsync(filePath);
+        using var image = await Image.LoadAsync(jpegOnly, filePath);
         image.Mutate(x => x.Resize(new ResizeOptions
         {
             Size = new Size(ThumbWidth, ThumbHeight),
@@ -176,7 +231,7 @@ app.MapGet("/images/{id}", async (string id, int? width, int? height, HttpContex
             return Results.File(filePath, "image/jpeg");
         }
 
-        using var image = await Image.LoadAsync(filePath);
+        using var image = await Image.LoadAsync(jpegOnly, filePath);
 
         if (width is null || height is null)
         {
@@ -238,14 +293,30 @@ app.MapPost("/images/upload", async (HttpRequest request) =>
     var file = form.Files["image"];
     if (file == null || file.Length == 0)
         return Results.BadRequest("No image uploaded.");
+    if (file.Length > MaxUploadBytes)
+        return Results.BadRequest("Image exceeds the maximum size of 20 MB.");
+
+    // Accept only files that really are JPEGs, whatever their name or content type says.
+    using var data = new MemoryStream();
+    await file.CopyToAsync(data);
+    try
+    {
+        data.Position = 0;
+        await Image.IdentifyAsync(jpegOnly, data);
+    }
+    catch (Exception ex) when (ex is UnknownImageFormatException or InvalidImageContentException)
+    {
+        return Results.BadRequest("Only JPEG images are supported.");
+    }
 
     var id = Guid.NewGuid().ToString();
     var fileName = $"{id}.jpg";
     var filePath = Path.Combine(imagesPath, fileName);
 
+    data.Position = 0;
     await using (var stream = File.Create(filePath))
     {
-        await file.CopyToAsync(stream);
+        await data.CopyToAsync(stream);
     }
 
     return Results.Ok(new { id, fileName });
@@ -264,6 +335,7 @@ app.MapDelete("/images/{id}", (string id) =>
     File.Delete(filePath);
     var thumbFile = Path.Combine(thumbsPath, $"{id}.jpg");
     if (File.Exists(thumbFile)) File.Delete(thumbFile);
+    photoDates.TryRemove(id, out _);
     if (disabledIds.Remove(id)) SaveDisabled();
     lock (foldersLock)
     {
@@ -294,7 +366,7 @@ app.MapGet("/folders", () =>
                 name = f.Name,
                 count = ids.Count,
                 enabledCount = ids.Count(i => !disabledIds.Contains(i)),
-                coverId = ids.FirstOrDefault()
+                coverId = ids.OrderByDescending(i => GetPhotoDate(i).TakenAt).FirstOrDefault()
             };
         });
         return Results.Ok(result.ToArray());
@@ -380,6 +452,7 @@ app.MapPost("/images/move", (MoveRequest request) =>
 app.Run();
 
 record Folder(string Id, string Name);
+record PhotoDate(DateTime TakenAt, bool FromExif);
 record FolderRequest(string? Name);
 record MoveRequest(string[]? ImageIds, string? FolderId);
 
