@@ -1,4 +1,4 @@
-![NetFrames GitHub Banner](/Assets/Images/jorgedevs-netframes.jpg)
+![NetFrames GitHub Banner](/Assets/Images/jorgedevs-netframes.png)
 
 # NetFrames
 
